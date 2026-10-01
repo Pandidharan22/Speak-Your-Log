@@ -51,6 +51,20 @@ docs/         PRD.md, SRS.md, Architecture.md, adr/, scale/ (SaaS-scale design)
 Dev_Journal.md
 ```
 
+## Commands
+
+API (from `apps/api`; own venv at `apps/api/.venv`, deps in `requirements*.txt`):
+
+```bash
+python -m venv .venv && .venv/Scripts/python -m pip install -r requirements-dev.txt   # once
+.venv/Scripts/python -m pytest                       # tests
+.venv/Scripts/python -m ruff check . && .venv/Scripts/python -m ruff format --check .   # lint + format
+.venv/Scripts/python -m uvicorn app.main:create_app --factory --reload --port 8000     # run (reads repo-root .env)
+```
+
+DB isolation check (from repo root, using the root `.venv` that also holds the spike deps): `.venv/Scripts/python db/verify_isolation.py`.
+CI (`.github/workflows/ci.yml`): repo-hygiene guard (no `.env`/keys tracked) + API lint/format/tests.
+
 ## Docs plan (written one at a time, in this order)
 
 PRD → SRS → Architecture.md → ADRs (`docs/adr/`) → Scale-out design (interview prep, `docs/scale/`) → test strategy → runbook/deploy checklist.
@@ -69,7 +83,7 @@ _Last updated: 2026-10-01_
 
 **DEADLINE: 2026-10-02 23:59 (user's local time).** Real working budget is only ~10–12 hours (user also sleeps/works) and Claude usage limits apply → scope is the thinnest vertical slice that satisfies the brief; docs are lean; scale-out design is interview prep and comes after the deployed demo works. Deploy something working early; polish later.
 
-**Phase:** 0 and 1 complete (foundation, spike, DB, lean docs) → entering Phase 2 (backend core). No application code yet.
+**Phase:** 0 and 1 complete (foundation, spike, DB, lean docs). **Phase 2 in progress:** 2.1 FastAPI scaffold (config fail-fast, `/healthz`, security headers, 38 tests, CI) — see Execution_plan.md.
 
 **Done**
 - Bootstrap committed: `main` @ `c7d4622`; `develop` has the journal + setup commits. Work happens on `develop`.
@@ -92,7 +106,9 @@ _Last updated: 2026-10-01_
 
 **Committed so far:** Phase 0 (repo, env, DB, spike) — `8cfba87` on `develop`. Phase 1 docs committed (`Execution_plan.md`, `docs/PRD.md`, `docs/SRS.md`, `docs/Architecture.md`, `docs/adr/001–007`); commit hashes are recorded in `Execution_plan.md`.
 
-**Next step:** Phase 2.1 (FastAPI scaffold). The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
+**Local .env gap:** `AGENT_JOB_SECRET` is not yet in the user's `.env` (the API refuses to boot without it — by design).
+
+**Next step:** after 2.1 is committed → 2.2 (DB layer). The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
 
 **Open decisions:** none blocking.
 
