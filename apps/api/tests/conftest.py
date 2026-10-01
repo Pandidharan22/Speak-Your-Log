@@ -1,8 +1,18 @@
 import base64
+import os
 
 import pytest
+from dotenv import dotenv_values
 
-from app.config import Settings
+from app.config import REPO_ROOT, Settings
+from app.db import Database
+
+# Captured at import time, BEFORE the autouse fixture below scrubs the environment. Integration
+# tests use the developer's real DATABASE_URL (from the env or the repo-root .env); in CI there is
+# none, so they skip.
+REAL_DATABASE_URL = os.environ.get("DATABASE_URL") or dotenv_values(REPO_ROOT / ".env").get(
+    "DATABASE_URL"
+)
 
 # Obviously-fake, deterministic 32-byte keys. Real keys live only in .env / platform settings.
 KEY_A = base64.urlsafe_b64encode(b"a" * 32).decode()
@@ -37,3 +47,23 @@ def make_settings():
         return Settings(_env_file=None, **{**VALID, **overrides})  # type: ignore[arg-type]
 
     return _make
+
+
+@pytest.fixture(scope="session")
+def real_db():
+    if not REAL_DATABASE_URL:
+        pytest.skip("no DATABASE_URL available (integration test)")
+    db = Database(REAL_DATABASE_URL, max_size=3)
+    db.open()
+    with db.connection() as conn:
+        # Safety rail: integration tests must only ever run as the limited app role.
+        assert conn.execute("select current_user as u").fetchone()["u"] == "syl_app"
+    yield db
+    db.close()
+
+
+@pytest.fixture
+def conn(real_db):
+    """A connection inside a transaction that is ALWAYS rolled back: tests leave no data."""
+    with real_db.connection() as c, c.transaction(force_rollback=True):
+        yield c

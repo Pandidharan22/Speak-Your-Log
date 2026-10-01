@@ -14,3 +14,4 @@ select = ["E", "F", "I", "B", "UP", "S"]
 testpaths = ["tests"]
 pythonpath = ["."]
 addopts = "-q"
+markers = ["integration: needs a real DATABASE_URL (skipped when absent, e.g. in CI)"]

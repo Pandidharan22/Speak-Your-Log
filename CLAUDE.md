@@ -57,7 +57,7 @@ API (from `apps/api`; own venv at `apps/api/.venv`, deps in `requirements*.txt`)
 
 ```bash
 python -m venv .venv && .venv/Scripts/python -m pip install -r requirements-dev.txt   # once
-.venv/Scripts/python -m pytest                       # tests
+.venv/Scripts/python -m pytest                       # tests (integration tests need DATABASE_URL in .env; they roll back and skip in CI)
 .venv/Scripts/python -m ruff check . && .venv/Scripts/python -m ruff format --check .   # lint + format
 .venv/Scripts/python -m uvicorn app.main:create_app --factory --reload --port 8000     # run (reads repo-root .env)
 ```
@@ -83,7 +83,7 @@ _Last updated: 2026-10-01_
 
 **DEADLINE: 2026-10-02 23:59 (user's local time).** Real working budget is only ~10–12 hours (user also sleeps/works) and Claude usage limits apply → scope is the thinnest vertical slice that satisfies the brief; docs are lean; scale-out design is interview prep and comes after the deployed demo works. Deploy something working early; polish later.
 
-**Phase:** 0 and 1 complete (foundation, spike, DB, lean docs). **Phase 2 in progress:** 2.1 FastAPI scaffold (config fail-fast, `/healthz`, security headers, 38 tests, CI) — see Execution_plan.md.
+**Phase:** 0 and 1 complete. **Phase 2 in progress:** 2.1 scaffold + 2.2 DB layer done (sync psycopg pool max 3, typed queries in `app/repo.py`, `/healthz` + `/readyz`, 68 tests of which 15 are integration and skip without `DATABASE_URL`) — see Execution_plan.md.
 
 **Done**
 - Bootstrap committed: `main` @ `c7d4622`; `develop` has the journal + setup commits. Work happens on `develop`.
@@ -108,7 +108,7 @@ _Last updated: 2026-10-01_
 
 **Local .env gap:** `AGENT_JOB_SECRET` is not yet in the user's `.env` (the API refuses to boot without it — by design).
 
-**Next step:** after 2.1 is committed → 2.2 (DB layer). The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
+**Next step:** 2.3 device session (cookie issue/verify, HMAC hash, Origin check). The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
 
 **Open decisions:** none blocking.
 

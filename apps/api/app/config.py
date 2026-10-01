@@ -44,6 +44,8 @@ class Settings(BaseSettings):
 
     # Postgres: the limited `syl_app` role via the Supabase transaction pooler.
     database_url: SecretStr
+    # Hard ceiling of 5: the project is shared with another live app and the role is limited to 10.
+    db_pool_max_size: int = Field(default=3, ge=1, le=5)
 
     # One key per purpose (key separation): never reuse a secret across roles.
     session_hmac_key: SecretStr  # hashes device-session cookies
