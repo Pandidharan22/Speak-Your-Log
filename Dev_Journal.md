@@ -23,3 +23,13 @@ One entry per committed step: what was done and why. Newest at the bottom. Entri
 - **No `service_role` key.** It bypasses RLS for the whole Anthaathi project and would live in the hosting environment. Instead a dedicated schema + limited role (`syl_app`) confines the blast radius to this app's tables.
 - **Spike on the API key alone.** The user has ~10–12 usable hours and limited Claude usage. Tamil STT risk is retained but tested with Gemini-TTS-synthesised audio (known ground truth) instead of hand-recorded clips. Known weakness: clean synthetic audio overstates accuracy, so real-voice validation moves to the first end-to-end test.
 - **Time budget:** deadline 2026-10-02 23:59; deploy a working slice early, polish after.
+
+---
+
+## Step 2 — Database schema in the shared Supabase project (`f23bfcc`, 2026-10-01)
+
+**What:** `db/migrations/0001_init.sql` creates schema `speakyourlog` (users, device_sessions, proof_credentials, interview_sessions) and a login role `syl_app` with no privileges anywhere else. Added a rollback script, a read-only admin check (`verify_admin.sql`) and `verify_isolation.py`, which connects as `syl_app` and proves both what it can do and what it is denied.
+
+**Why:** The only Supabase project is shared with another live app (Anthaathi), so isolation is the requirement, not a nicety. Additive-only SQL, a schema not exposed to the REST API, RLS on every table, and a role that cannot touch `auth`/`public`/`storage`/`vault` keep any bug or leak in this app from reaching Anthaathi. Only a hash of the device cookie is stored, and the Proof token is stored only as AES-GCM ciphertext (the key lives outside the DB). The consent state machine is a CHECK-constrained column so an invalid state is impossible, and the `confirming → posting` transition can be a single atomic UPDATE.
+
+**Verification:** admin query matched every expected value; `verify_isolation.py` passed 14/14 against the live database. "Success, no rows returned" only means no error, so the negative tests (denied on auth/storage/vault/public, cannot create roles or tables) are what actually prove isolation. Known note: the role can read two Postgres statistics views in `extensions`; harmless platform views.
