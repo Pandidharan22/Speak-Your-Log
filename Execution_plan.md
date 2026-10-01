@@ -20,8 +20,8 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 ## Phase 1 — Lean documentation (≈1 h)
 
 - [x] 1.1 `Execution_plan.md` (this file) — `1cb6cde`
-- [~] 1.2 `docs/PRD.md` — what we build and why, acceptance criteria — written, awaiting commit
-- [~] 1.3 `docs/SRS.md` — numbered requirements, API, state machine, error matrix — written, awaiting commit
+- [x] 1.2 `docs/PRD.md` — what we build and why, acceptance criteria
+- [x] 1.3 `docs/SRS.md` — numbered requirements, API, state machine, error matrix
 - [~] 1.4 `docs/Architecture.md` — components, flows, security model, deployment — written, awaiting commit
 - [~] 1.5 `docs/adr/` ADR-001…007 — one page each, options and trade-offs — written, awaiting commit
 
