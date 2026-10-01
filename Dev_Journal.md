@@ -45,3 +45,11 @@ One entry per committed step: what was done and why. Newest at the bottom. Entri
 **Decision (ADR-001 to follow):** conversation on Gemini Live; the stored transcript comes from Live input transcription, optionally refined per utterance by batch transcribe off the latency path; posting stays in deterministic code; the read-back text is also shown on screen. This reverses my earlier default of a cascaded pipeline, which is why the spike came before any build.
 
 **Limits of the evidence:** clean synthetic speech flatters recognisers. Real-voice testing is the first end-to-end check.
+
+---
+
+## Step 4 — Execution plan (`1cb6cde`, 2026-10-01)
+
+**What:** `Execution_plan.md`: Phases 0–8 broken into checkboxed steps, with time estimates, a cut order and a "never cut" list.
+
+**Why:** With ~10–12 working hours and usage limits, the biggest planning risk is spending time on the wrong thing. Writing the cut line down in advance (re-transcription, a11y polish, interview prep go first; crypto tests, consent/idempotency tests, the real-voice test and the README never do) turns a stressful decision at hour 9 into a lookup. Each step is one verifiable unit, ticked only after it is verified and committed, so progress is visible and a fresh session can resume from the file.
