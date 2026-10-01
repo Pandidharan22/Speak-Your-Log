@@ -93,3 +93,15 @@ One entry per committed step: what was done and why. Newest at the bottom. Entri
 **Testing lessons:** integration tests run as the limited `syl_app` role inside a transaction that is always rolled back, and I confirmed all four tables were empty afterwards. Of seven deliberate bugs, five were caught at once. Two slipped through: a "touch only when stale" test could not tell a wrongful write because `now()` is frozen inside a transaction (fixed by backdating the starting value), and nothing checked that prepared statements stay off. Both are fixed. A test that cannot fail is not a test.
 
 **Known gap:** CI has no database, so the 15 integration tests skip there (53 run). They must be run locally before merging; a follow-up could give CI a throwaway database.
+
+---
+
+## Step 9 — Device-session identity (`3e35b15`, 2026-10-01)
+
+**What:** `POST /api/session` recognises a returning device or silently creates an anonymous user; a `current_user` dependency for routes that need a session; an Origin check on state-changing `/api` calls; a per-IP limit on new-user creation; cleanup of expired sessions and abandoned users. 73 new tests (111 total).
+
+**Why these choices:** (1) The cookie value is 256 random bits and only its **HMAC-SHA256 is stored**, so a database leak cannot be replayed as a login; the cookie is HttpOnly so page JavaScript can never read it. (2) In production the cookie is `__Host-` prefixed and Secure, so a sibling subdomain cannot plant or overwrite it. (3) **Origin check on top of SameSite=Lax**: two independent CSRF defences, because either alone has had bypasses. `/internal/*` is exempt on purpose: the agent authenticates with a signed token, not a cookie. (4) **Only user *creation* is rate limited** (10/min/IP), so bots cannot fill a shared 500 MB database but returning students are never throttled. (5) Purging abandoned users must never remove anyone with an interview, because deleting a user cascades to their interviews, which has its own test. (6) Fixed 90-day lifetime rather than sliding: simpler and predictable; a student who returns after 90 days pastes the token again.
+
+**Testing lessons:** 10 deliberate bugs (CSRF off, JS-readable cookie, SameSite=None, raw token stored, no `__Host-`, rate limit off, purge deleting users with interviews, and more) are all caught; one first slipped through (nothing checked that a returning visit refreshes last-seen), so a test was added. One failure was a test artifact, not a bug: Postgres freezes `now()` at transaction start, so a session "expired one second ago" was still valid inside the test's long transaction. Integration tests run the real endpoints on a single rolled-back connection; a manual curl run against the real server confirmed the cookie flags, a 403 for missing or foreign Origin, and no new cookie on a returning visit.
+
+**Deploy notes carried forward:** production requires `PUBLIC_BASE_URL` (https) or the app refuses to boot; uvicorn must run with `--proxy-headers` behind Render or every visitor appears to share one IP and the rate limit would block everyone together.
