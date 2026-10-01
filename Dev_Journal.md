@@ -61,3 +61,11 @@ One entry per committed step: what was done and why. Newest at the bottom. Entri
 **What:** `docs/PRD.md` (problem, users, goals/non-goals, flow, 8 acceptance criteria, risks) and `docs/SRS.md` (17 functional requirements, persisted state machine, HTTP API, NFRs with numbers, error-handling matrix, traceability to the brief).
 
 **Why:** The brief is short; the product's hard parts are implicit in it ("word for word", "only after yes"). Turning them into numbered, testable requirements (FR-8 verbatim, FR-13/15 consent and at-most-once posting, FR-14 server-built payload) means every later test and ADR can point at a requirement instead of an opinion. The SRS also records a design choice that came out of writing it: the backend builds the post from stored answers, so the agent can only say "confirmed", never supply text.
+
+---
+
+## Step 6 — Architecture and decision records (`5626aa5`, 2026-10-01)
+
+**What:** `docs/Architecture.md` (context and sequence diagrams, which component holds which secret, threat table, deployment, testing strategy) and seven ADRs: pipeline, identity, DB isolation, token encryption, consent gate, hosting, verbatim policy.
+
+**Why:** Every ADR records a decision that changed during this project or that a reviewer would question: cascaded→Live (measured), magic link→device cookie (shared-project risk), service-role→limited role (blast radius), Vault→app-level AES (shared vault, separate trust domains). Writing the rejected options next to the chosen one is the point — it shows the trade-off, not just the outcome. The architecture deliberately gives the agent no database, key, or Proof-token access.
