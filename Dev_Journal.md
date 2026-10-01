@@ -81,3 +81,15 @@ One entry per committed step: what was done and why. Newest at the bottom. Entri
 **What testing taught me:** I broke the code on purpose six ways to check the tests could fail. One slipped through (a test that set an env var when the real risk is the `.env` file) and was rewritten. Running the real server against the real `.env` then found a genuine bug no unit test had: pydantic's default validation error prints `input_value={...}` — a fragment of real secrets — into boot logs. Fixed with `hide_input_in_errors`, plus a regression test that fails without the fix. Lesson: unit tests prove the logic; only running the real thing against real config finds integration leaks.
 
 **Known gaps:** CI has not run on GitHub yet (first push will show it). The user's local `.env` still lacks `AGENT_JOB_SECRET`, so a local boot fails by design until it is added. A Starlette `httpx` deprecation warning in tests is deferred.
+
+---
+
+## Step 8 — Database layer (`9347d25`, 2026-10-01)
+
+**What:** `app/db.py` (a small synchronous psycopg pool), `app/repo.py` (typed, schema-qualified, user-scoped queries for users, device sessions and the encrypted-token vault), a `/readyz` endpoint, and 30 new tests (15 against the real isolated schema).
+
+**Why these choices:** (1) *Sync psycopg + FastAPI's threadpool* rather than async: psycopg's async mode cannot run on Windows' default event loop, our volume does not need it, and the sync path is simpler to test. (2) *Pool capped at 3 (hard ceiling 5)* because the Supabase project and its 10-connection role budget are shared with a live app. (3) *Prepared statements off*, because behind the transaction pooler they can fail intermittently in production only. (4) *Boot never waits for the DB* and `/healthz` never touches it, so a database blip cannot take down a healthy process or be amplified by the keep-warm ping; `/readyz` is where DB health is reported, with no error detail. (5) *Repository functions take a connection*, so the caller owns the transaction, which the post gateway will need for its atomic state change.
+
+**Testing lessons:** integration tests run as the limited `syl_app` role inside a transaction that is always rolled back, and I confirmed all four tables were empty afterwards. Of seven deliberate bugs, five were caught at once. Two slipped through: a "touch only when stale" test could not tell a wrongful write because `now()` is frozen inside a transaction (fixed by backdating the starting value), and nothing checked that prepared statements stay off. Both are fixed. A test that cannot fail is not a test.
+
+**Known gap:** CI has no database, so the 15 integration tests skip there (53 run). They must be run locally before merging; a follow-up could give CI a throwaway database.
