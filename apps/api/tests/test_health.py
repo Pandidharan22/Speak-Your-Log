@@ -59,3 +59,13 @@ def test_create_app_does_not_read_environment_at_import():
     import app.main as main
 
     importlib.reload(main)  # would raise if it built Settings() at import with no env set
+
+
+def test_app_info_logs_are_enabled_so_production_has_an_audit_trail(make_settings):
+    import logging
+
+    create_app(make_settings())
+    create_app(make_settings())  # idempotent: no duplicate handlers
+    logger = logging.getLogger("app")
+    assert logger.isEnabledFor(logging.INFO)
+    assert len(logger.handlers) <= 1

@@ -6,7 +6,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 `[x]` done · `[ ]` to do · `[~]` in progress · **⚑ CUT** = first thing to drop if we run late.
 
-**Current step → 2.6 — Token endpoints**
+**Current step → Phase 2 review (code-review + security review), then 3.1 — Interview state machine**
 
 ---
 
@@ -32,7 +32,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 - [x] 2.3 Device session: cookie issue/verify (HMAC hash in DB), CSRF/origin check — `3e35b15`
 - [x] 2.4 Token vault crypto: AES-256-GCM, AAD = user_id, key-id rotation + tests (round-trip, tamper, wrong user, wrong key) — `22ea828`
 - [x] 2.5 Proof client: `tools/list` validation, `post_log`, typed errors (401/429/timeout) + mocked tests — `bec1ff1`
-- [ ] 2.6 Token endpoints: `PUT/GET/DELETE /api/proof-token` + tests proving the token never appears in any response or log
+- [x] 2.6 Token endpoints: `PUT/GET/DELETE /api/proof-token` + tests proving the token never appears in any response or log
 
 ## Phase 3 — Voice agent (≈3.5 h) — the core of the product
 

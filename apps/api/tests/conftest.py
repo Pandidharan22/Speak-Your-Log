@@ -1,5 +1,6 @@
 import base64
 import os
+from contextlib import contextmanager
 
 import pytest
 from dotenv import dotenv_values
@@ -51,6 +52,33 @@ def make_settings():
         return Settings(_env_file=None, **{**VALID, **overrides})  # type: ignore[arg-type]
 
     return _make
+
+
+class SharedConnDb:
+    """Test double for Database: every request reuses one connection inside a rollback.
+
+    `active` counts connections currently checked out, so a test can prove that no database
+    connection is held while the app waits on an external service.
+    """
+
+    def __init__(self, conn) -> None:
+        self._conn = conn
+        self.active = 0
+
+    @contextmanager
+    def connection(self):
+        self.active += 1
+        try:
+            yield self._conn
+        finally:
+            self.active -= 1
+
+    def open(self) -> None: ...
+
+    def close(self) -> None: ...
+
+    def ping(self) -> bool:
+        return True
 
 
 @pytest.fixture(scope="session")

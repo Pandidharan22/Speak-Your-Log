@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from pydantic import BaseModel
 
 from app import repo
 from app.auth import (
@@ -11,13 +10,9 @@ from app.auth import (
 )
 from app.config import Settings
 from app.db import Database
+from app.schemas import SessionStatus
 
 router = APIRouter(prefix="/api")
-
-
-class SessionStatus(BaseModel):
-    connected: bool  # has the user stored a Proof token?
-    last4: str | None  # the ONLY fragment of the token that ever leaves the server
 
 
 @router.post("/session")

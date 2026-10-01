@@ -53,7 +53,7 @@ Conversation steps inside `interviewing` (agent-local): `greeting → q1 → q2 
 |---|---|---|
 | `GET /healthz` | Liveness | No auth |
 | `POST /api/session` | Idempotent bootstrap: ensure a device user + cookie | Returns `{connected, last4}` |
-| `PUT /api/proof-token` | Validate and store token | Body `{token}`; rate-limited; never echoed |
+| `PUT /api/proof-token` | Validate and store token | Body `{token}`; 10 attempts/min per IP and per user; never echoed. Errors: `422 invalid_token_format`, `400 token_rejected` / `token_cannot_post`, `429 proof_rate_limited` / `too_many_attempts`, `503 proof_unavailable`. Validation errors (422) never repeat the input. Bodies over 16 KB get 413 |
 | `GET /api/proof-token` | Connection status | `{connected, last4}` only |
 | `DELETE /api/proof-token` | Disconnect | |
 | `POST /api/interviews` | Create interview, create room, **explicitly dispatch** the agent, mint browser LiveKit token | Requires connected token; returns `{livekit_url, token, interview_id}` |

@@ -5,7 +5,6 @@ database. Requests are sent with the app's own Origin, as a browser would.
 """
 
 import os
-from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -15,29 +14,11 @@ from fastapi.testclient import TestClient
 from app import repo
 from app.auth import current_user, hash_token
 from app.main import create_app
-from tests.conftest import PROD
+from tests.conftest import PROD, SharedConnDb
 
 pytestmark = pytest.mark.integration
 
 ORIGIN = {"Origin": "http://localhost:8000"}
-
-
-class SharedConnDb:
-    """Test double for Database: every request reuses one connection inside a rollback."""
-
-    def __init__(self, conn) -> None:
-        self._conn = conn
-
-    @contextmanager
-    def connection(self):
-        yield self._conn
-
-    def open(self) -> None: ...
-
-    def close(self) -> None: ...
-
-    def ping(self) -> bool:
-        return True
 
 
 @pytest.fixture
