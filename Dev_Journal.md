@@ -53,3 +53,11 @@ One entry per committed step: what was done and why. Newest at the bottom. Entri
 **What:** `Execution_plan.md`: Phases 0–8 broken into checkboxed steps, with time estimates, a cut order and a "never cut" list.
 
 **Why:** With ~10–12 working hours and usage limits, the biggest planning risk is spending time on the wrong thing. Writing the cut line down in advance (re-transcription, a11y polish, interview prep go first; crypto tests, consent/idempotency tests, the real-voice test and the README never do) turns a stressful decision at hour 9 into a lookup. Each step is one verifiable unit, ticked only after it is verified and committed, so progress is visible and a fresh session can resume from the file.
+
+---
+
+## Step 5 — PRD and SRS (`001185e`, 2026-10-01)
+
+**What:** `docs/PRD.md` (problem, users, goals/non-goals, flow, 8 acceptance criteria, risks) and `docs/SRS.md` (17 functional requirements, persisted state machine, HTTP API, NFRs with numbers, error-handling matrix, traceability to the brief).
+
+**Why:** The brief is short; the product's hard parts are implicit in it ("word for word", "only after yes"). Turning them into numbered, testable requirements (FR-8 verbatim, FR-13/15 consent and at-most-once posting, FR-14 server-built payload) means every later test and ADR can point at a requirement instead of an opinion. The SRS also records a design choice that came out of writing it: the backend builds the post from stored answers, so the agent can only say "confirmed", never supply text.
