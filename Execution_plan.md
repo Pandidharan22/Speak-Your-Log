@@ -6,7 +6,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 `[x]` done · `[ ]` to do · `[~]` in progress · **⚑ CUT** = first thing to drop if we run late.
 
-**Current step → Phase 2 review (code-review + security review), then 3.1 — Interview state machine**
+**Current step → 3.2 — POST /api/interviews (room, agent dispatch, browser token)**
 
 ---
 
@@ -36,7 +36,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 ## Phase 3 — Voice agent (≈3.5 h) — the core of the product
 
-- [ ] 3.1 Interview state machine (pure Python) + exhaustive unit tests
+- [x] 3.1 Interview state machine (pure Python) + exhaustive unit tests
 - [ ] 3.2 `POST /api/interviews`: create room, explicit agent dispatch, LiveKit token for the browser
 - [ ] 3.3 Hello-agent: joins room, Gemini Live (`gemini-3.1-flash-live-preview`), speaks Tamil/English locally
 - [ ] 3.4 Scripted questions Q1 → Q2 → Q3 + verbatim capture per turn

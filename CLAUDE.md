@@ -62,6 +62,8 @@ python -m venv .venv && .venv/Scripts/python -m pip install -r requirements-dev.
 .venv/Scripts/python -m uvicorn app.main:create_app --factory --reload --port 8000     # run (reads repo-root .env)
 ```
 
+Agent (from `apps/agent`; own venv, only pytest+ruff until step 3.3 adds `livekit-agents`): `.venv/Scripts/python -m pytest` · `.venv/Scripts/python -m ruff check .`
+
 DB isolation check (from repo root, using the root `.venv` that also holds the spike deps): `.venv/Scripts/python db/verify_isolation.py`.
 CI (`.github/workflows/ci.yml`): repo-hygiene guard (no `.env`/keys tracked) + API lint/format/tests.
 
@@ -83,7 +85,7 @@ _Last updated: 2026-10-01_
 
 **DEADLINE: 2026-10-02 23:59 (user's local time).** Real working budget is only ~10–12 hours (user also sleeps/works) and Claude usage limits apply → scope is the thinnest vertical slice that satisfies the brief; docs are lean; scale-out design is interview prep and comes after the deployed demo works. Deploy something working early; polish later.
 
-**Phase:** 0 and 1 complete. **Phase 2 (backend core) complete pending review:** 2.1–2.6 done. 2.6 = `PUT/GET/DELETE /api/proof-token` (shape check → validate with Proof with NO db connection held → encrypt → store; returns only `connected`+`last4`); global 422 handler that never echoes input; 16 KB body cap; token rate limit; app INFO logging enabled (audit events, never secrets); 292 tests; verified live against real Supabase + real Proof (token stored encrypted, decrypts, deleted, 0 occurrences in HTTP responses and server log) — see Execution_plan.md.
+**Phase:** 0, 1, 2 complete (Phase-2 review deferred until after Phase 4 — one pass over the whole system). **Phase 3 in progress:** 3.1 done — `apps/api/app/states.py` (persisted states + the single transition table; only `confirming → posting`) and `apps/agent/interview/flow.py` (pure conversation machine: `Flow` takes events, returns `Action`s, can only *request* a post from CONFIRM after the read-back; 753 reachable states explored exhaustively). 303 API tests + 61 agent tests; 27 deliberate flow bugs all caught — see Execution_plan.md.
 
 **Done**
 - Bootstrap committed: `main` @ `c7d4622`; `develop` has the journal + setup commits. Work happens on `develop`.
@@ -106,7 +108,7 @@ _Last updated: 2026-10-01_
 
 **Committed so far:** Phase 0 (repo, env, DB, spike) — `8cfba87` on `develop`. Phase 1 docs committed (`Execution_plan.md`, `docs/PRD.md`, `docs/SRS.md`, `docs/Architecture.md`, `docs/adr/001–007`); commit hashes are recorded in `Execution_plan.md`.
 
-**Next step:** run `engineering:code-review` + security review over all of Phase 2 and fix findings; then Phase 3.1 (interview state machine). The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
+**Next step:** 3.2 `POST /api/interviews` (create room, explicit agent dispatch, browser LiveKit token). The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
 
 **Open decisions:** none blocking.
 

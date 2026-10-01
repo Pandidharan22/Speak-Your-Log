@@ -29,5 +29,5 @@ We accept more plumbing (internal endpoints, signed job token) for a posting pat
 - Revisit: a visible "Post" button as a second factor if reviewers prefer.
 
 ## Action items
-1. [ ] State machine tests (3.1) · [ ] Consent classifier + eval set (3.6)
+1. [x] State machines + exhaustive tests: persisted table (`app/states.py`) and conversation flow (`apps/agent/interview/flow.py`), 753 states explored (3.1) · [ ] Consent classifier + eval set (3.6)
 2. [ ] Post gateway + failure-injection tests (4.1, 4.2)

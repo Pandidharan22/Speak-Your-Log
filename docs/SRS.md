@@ -41,10 +41,12 @@ Persisted state (`interview_sessions.state`, enforced by a CHECK constraint):
 created ──agent joins──▶ interviewing ──read-back done──▶ confirming ──valid "yes"──▶ posting ──ok──▶ posted
    │                         │  ▲                            │  │                         ├─timeout/unknown─▶ post_unknown
    │                         │  └────── edit: start over ────┘  │                         └─Proof error────▶ failed
-   └────────── cancel / timeout / hard cap (from any non-terminal state) ──▶ cancelled
+   └────────── cancel / timeout / hard cap (from any non-terminal state except posting) ──▶ cancelled
 ```
 
-Conversation steps inside `interviewing` (agent-local): `greeting → q1 → q2 → q3 → followup → readback`. Terminal states: `posted`, `post_unknown`, `failed`, `cancelled`. The only path to `posting` is from `confirming`.
+Two more moves: `posting → confirming` when Proof **definitely did not apply** the post (bad token, rate limit, unreachable) so the student can be asked to confirm and retry (at most twice in total); and `posting` can never be cancelled, it must resolve to `posted`, `post_unknown`, `failed`, or back to `confirming`.
+
+Conversation steps inside `interviewing` (agent-local): `greeting → q1 → q2 → q3 → followup → readback`, then `confirm`. Terminal states: `posted`, `post_unknown`, `failed`, `cancelled`. **The only path to `posting` is from `confirming`**, and a spoken "yes" only counts after the read-back has finished. Implemented as two pure modules, both exhaustively tested: `apps/api/app/states.py` (persisted table) and `apps/agent/interview/flow.py` (conversation flow; its tests explore all 753 reachable states and check the consent invariants on every transition).
 
 ## 3. Interfaces
 
