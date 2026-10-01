@@ -69,7 +69,7 @@ _Last updated: 2026-10-01_
 
 **DEADLINE: 2026-10-02 23:59 (user's local time).** Real working budget is only ~10–12 hours (user also sleeps/works) and Claude usage limits apply → scope is the thinnest vertical slice that satisfies the brief; docs are lean; scale-out design is interview prep and comes after the deployed demo works. Deploy something working early; polish later.
 
-**Phase:** 0 complete (spike + DB) → entering lean docs (PRD, SRS, Architecture) then the vertical slice. No application code yet.
+**Phase:** 0 and 1 complete (foundation, spike, DB, lean docs) → entering Phase 2 (backend core). No application code yet.
 
 **Done**
 - Bootstrap committed: `main` @ `c7d4622`; `develop` has the journal + setup commits. Work happens on `develop`.
@@ -88,7 +88,11 @@ _Last updated: 2026-10-01_
 **Decision D1 RESOLVED:** conversation = Gemini Live (`gemini-3.1-flash-live-preview`, fallback `gemini-3.8-live`; model ids are env config). Record path = Live input transcription, optionally refined per utterance by `gemini-3.5-transcribe` off the latency-critical path. Consent/post stay in deterministic code; read-back text is also shown on screen.
 - Product mapping: one Proof log per session, verb `built`; `content` = student's verbatim answers to Q1 ("tried") + Q2 ("broke"); `why` = verbatim answers to Q3 ("why") + follow-up. No labels, no rewriting.
 
-**Next step:** user go-ahead to commit Step 2 (DB) and Step 3 (spike), then lean docs: PRD → SRS → Architecture (+ short ADRs), then the vertical slice (agent → API → UI → deploy).
+**Progress tracker:** [Execution_plan.md](Execution_plan.md) — every step has a checkbox; tick it (with the commit hash) when the step is verified and committed. Read it first in a fresh session.
+
+**Committed so far:** Phase 0 (repo, env, DB, spike) — `8cfba87` on `develop`. Phase 1 docs committed (`Execution_plan.md`, `docs/PRD.md`, `docs/SRS.md`, `docs/Architecture.md`, `docs/adr/001–007`); commit hashes are recorded in `Execution_plan.md`.
+
+**Next step:** Phase 2.1 (FastAPI scaffold). The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
 
 **Open decisions:** none blocking.
 
