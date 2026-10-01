@@ -69,3 +69,15 @@ One entry per committed step: what was done and why. Newest at the bottom. Entri
 **What:** `docs/Architecture.md` (context and sequence diagrams, which component holds which secret, threat table, deployment, testing strategy) and seven ADRs: pipeline, identity, DB isolation, token encryption, consent gate, hosting, verbatim policy.
 
 **Why:** Every ADR records a decision that changed during this project or that a reviewer would question: cascaded→Live (measured), magic link→device cookie (shared-project risk), service-role→limited role (blast radius), Vault→app-level AES (shared vault, separate trust domains). Writing the rejected options next to the chosen one is the point — it shows the trade-off, not just the outcome. The architecture deliberately gives the agent no database, key, or Proof-token access.
+
+---
+
+## Step 7 — FastAPI scaffold (`3287fc8`, 2026-10-01)
+
+**What:** `apps/api`: settings loaded from the environment and validated at boot, `/healthz`, security-header middleware, ruff + pytest, 38 tests, and a CI workflow (repo-hygiene guard + lint + tests). Added `AGENT_JOB_SECRET` to `.env.example`.
+
+**Why:** Config is the first place a secrets-handling service can go wrong, so it fails fast: a missing, malformed, short, or *reused* key stops the boot instead of surfacing at the first request. Each secret has one purpose (session hashing, job-token signing, vault encryption) and the API refuses to start if any two are equal. The API deliberately does not load `GEMINI_API_KEY` even when it is in the shared local `.env`. `/healthz` is liveness-only so the keep-warm ping never loads the shared Supabase database.
+
+**What testing taught me:** I broke the code on purpose six ways to check the tests could fail. One slipped through (a test that set an env var when the real risk is the `.env` file) and was rewritten. Running the real server against the real `.env` then found a genuine bug no unit test had: pydantic's default validation error prints `input_value={...}` — a fragment of real secrets — into boot logs. Fixed with `hide_input_in_errors`, plus a regression test that fails without the fix. Lesson: unit tests prove the logic; only running the real thing against real config finds integration leaks.
+
+**Known gaps:** CI has not run on GitHub yet (first push will show it). The user's local `.env` still lacks `AGENT_JOB_SECRET`, so a local boot fails by design until it is added. A Starlette `httpx` deprecation warning in tests is deferred.
