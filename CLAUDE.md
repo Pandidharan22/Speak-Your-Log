@@ -83,7 +83,7 @@ _Last updated: 2026-10-01_
 
 **DEADLINE: 2026-10-02 23:59 (user's local time).** Real working budget is only ~10–12 hours (user also sleeps/works) and Claude usage limits apply → scope is the thinnest vertical slice that satisfies the brief; docs are lean; scale-out design is interview prep and comes after the deployed demo works. Deploy something working early; polish later.
 
-**Phase:** 0 and 1 complete. **Phase 2 in progress:** 2.1 scaffold, 2.2 DB layer, 2.3 device session, 2.4 token-vault crypto done (`app/crypto.py`: AES-256-GCM, AAD = user_id, key-id rotation, `decrypt` returns `SecretStr`, golden-vector test pins the stored format; 153 tests) — see Execution_plan.md.
+**Phase:** 0 and 1 complete. **Phase 2 in progress:** 2.1–2.5 done. 2.5 = `app/proof.py` Proof client (validate via `tools/list`; `post_log` never retried; errors split into *definitive-not-applied* vs `PostOutcomeUnknown`; token redacted from third-party text; no redirects; verbatim text sent untouched; 250 tests, all HTTP mocked) — see Execution_plan.md.
 
 **Done**
 - Bootstrap committed: `main` @ `c7d4622`; `develop` has the journal + setup commits. Work happens on `develop`.
@@ -106,7 +106,7 @@ _Last updated: 2026-10-01_
 
 **Committed so far:** Phase 0 (repo, env, DB, spike) — `8cfba87` on `develop`. Phase 1 docs committed (`Execution_plan.md`, `docs/PRD.md`, `docs/SRS.md`, `docs/Architecture.md`, `docs/adr/001–007`); commit hashes are recorded in `Execution_plan.md`.
 
-**Next step:** 2.5 Proof client (`tools/list` validation, `post_log`, typed errors, mocked tests). The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
+**Next step:** 2.6 token endpoints (`PUT/GET/DELETE /api/proof-token`) + tests that the token never appears in any response or log. The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
 
 **Open decisions:** none blocking.
 
@@ -115,6 +115,8 @@ _Last updated: 2026-10-01_
 2. Free-tier Gemini: content is used to improve Google products (privacy disclosure needed); limits can change; TTS 3.8 models free only through 2026-12-31.
 3. LiveKit Build plan hard caps: 1 deployed agent, 1,000 agent-minutes/mo, 5 concurrent sessions; agents sleep when idle (cold start).
 4. Supabase free projects pause after ~1 week of inactivity; no automatic backups.
+
+**Unverified until the first real post (6.4):** the *success* reply shape of `post_log` (the client parses it tolerantly).
 
 ## Verified facts (as of 2026-10-01; re-verify before relying on them)
 

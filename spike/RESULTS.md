@@ -39,3 +39,14 @@ Evidence behind ADR-001 (pipeline choice). Scripts: `01_smoke.py`, `02_stt_bakeo
 - Tools: `post_log`, `list_my_recent_logs`, `capture_session`.
 - `post_log` args: `verb` (enum: built, stuck, mistake, thinking, decided, nothing, quiet, changed, flagged, thank, learned, freely, assumed, noticed, ask, wonder, figure_out, interview), `content` (required), `why` (**required when verb = `decided`**), `evidence_url` (optional http(s)).
 - Its description requires the user's own words or an approved draft, and says **the log is public on the user's Proof profile** → the read-back must say so before asking for consent.
+
+### Observed error behaviour (probed in step 2.5 with side-effect-free requests)
+
+| Request | Response |
+|---|---|
+| no token / wrong token | HTTP **401**, JSON-RPC error `-32001` ("Unauthorized"), `WWW-Authenticate: Bearer realm="proof-mcp"` |
+| unknown tool / unknown method / missing method | HTTP **200** with JSON-RPC error `-32601` (so the *body*, not the status, carries tool/protocol errors) |
+| `GET` instead of `POST` | HTTP 405 |
+| `tools/list` with a valid token | HTTP 200, 3 tools |
+
+**Still unobserved:** the shape of a *successful* `post_log` reply (seeing it requires a real, public post). `app/proof.py` therefore parses success tolerantly and treats any reply Proof marks successful as posted, even if no URL can be found. Verify the real shape during the first end-to-end test (Execution_plan 6.4).
