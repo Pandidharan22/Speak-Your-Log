@@ -6,7 +6,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 `[x]` done · `[ ]` to do · `[~]` in progress · **⚑ CUT** = first thing to drop if we run late.
 
-**Current step → 1.2–1.5 committed next; then 2.1**
+**Current step → 2.1 — FastAPI scaffold**
 
 ---
 
@@ -22,8 +22,8 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 - [x] 1.1 `Execution_plan.md` (this file) — `1cb6cde`
 - [x] 1.2 `docs/PRD.md` — what we build and why, acceptance criteria — `001185e`
 - [x] 1.3 `docs/SRS.md` — numbered requirements, API, state machine, error matrix — `001185e`
-- [~] 1.4 `docs/Architecture.md` — components, flows, security model, deployment — written, awaiting commit
-- [~] 1.5 `docs/adr/` ADR-001…007 — one page each, options and trade-offs — written, awaiting commit
+- [x] 1.4 `docs/Architecture.md` — components, flows, security model, deployment
+- [x] 1.5 `docs/adr/` ADR-001…007 — one page each, options and trade-offs
 
 ## Phase 2 — Backend core: identity, vault, Proof client (≈2.5 h)
 
