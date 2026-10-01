@@ -69,12 +69,15 @@ _Last updated: 2026-10-01_
 
 **DEADLINE: 2026-10-02 23:59 (user's local time).** Real working budget is only ~10–12 hours (user also sleeps/works) and Claude usage limits apply → scope is the thinnest vertical slice that satisfies the brief; docs are lean; scale-out design is interview prep and comes after the deployed demo works. Deploy something working early; polish later.
 
-**Phase:** 0 — Spike (no application code yet).
+**Phase:** 0 complete (spike + DB) → entering lean docs (PRD, SRS, Architecture) then the vertical slice. No application code yet.
 
 **Done**
 - Bootstrap committed: `main` @ `c7d4622`; `develop` has the journal + setup commits. Work happens on `develop`.
 - User approved design decisions D1–D8 (cascaded pipeline unless spike says Live is as good for Tamil; agent proposes / backend disposes; consent in code; AES-256-GCM token vault; idempotent post gateway).
-- Local `.env` filled by user (Gemini, LiveKit, Proof spike token, two dev crypto keys — validated as 32-byte base64, never printed). `DATABASE_URL` still a placeholder until the schema SQL is run.
+- Local `.env` filled by user (Gemini, LiveKit, Proof spike token, two dev crypto keys, `DATABASE_URL` for the limited `syl_app` role — all validated, never printed).
+- **DB live and verified** in the shared "Anthaathi" Supabase project: `db/migrations/0001_init.sql` run by the user; admin check (`db/verify_admin.sql`) matched; `db/verify_isolation.py` passes 14/14 (app can use only schema `speakyourlog`; denied on auth/storage/vault/public). Rollback: `db/rollback/0001_init_down.sql`.
+- **Spike done** (`spike/RESULTS.md`): Tamil works in Gemini; batch STT is 3–5 s/utterance (too slow); **Gemini Live `gemini-3.1-flash-live-preview` ≈1 s first-audio latency** and asks the quoting follow-up natively.
+- Proof `post_log` schema captured: 18 verbs, `why` required for `decided`, **posts are public** on the profile.
 
 **Decisions made 2026-10-01**
 - **Supabase:** no new project possible (free limit hit). Reuse the user's existing project "Anthaathi" with strict isolation: dedicated schema `speakyourlog`, dedicated limited Postgres role `syl_app`, RLS on, schema NOT exposed to PostgREST, connect via the pooler URL. We never receive the project's `service_role` key (it would bypass RLS for all Anthaathi data).
@@ -82,12 +85,15 @@ _Last updated: 2026-10-01_
 - **Hosting (no card):** one FastAPI service serving the built React app on Render free (sleeps after 15 min → keep-warm ping); agent on LiveKit Cloud Build (1 deployment). Hugging Face Spaces dropped (new compute Spaces need a paid plan).
 - **Spike without recorded audio (user's call, time-boxed):** use Gemini TTS to synthesise Tamil / Tanglish / English audio with known text, feed it to the STT candidates, compare. Caveat: clean synthetic audio overstates accuracy; real-voice validation happens in the first live end-to-end test.
 
-**Next step:** write + run the spike script (Gemini key smoke test, STT candidates on synthetic Tamil, latency, Proof `tools/list`) → pipeline decision.
+**Decision D1 RESOLVED:** conversation = Gemini Live (`gemini-3.1-flash-live-preview`, fallback `gemini-3.8-live`; model ids are env config). Record path = Live input transcription, optionally refined per utterance by `gemini-3.5-transcribe` off the latency-critical path. Consent/post stay in deterministic code; read-back text is also shown on screen.
+- Product mapping: one Proof log per session, verb `built`; `content` = student's verbatim answers to Q1 ("tried") + Q2 ("broke"); `why` = verbatim answers to Q3 ("why") + follow-up. No labels, no rewriting.
 
-**Open decisions:** agent pipeline (cascaded vs Gemini Live) — settled by the spike.
+**Next step:** user go-ahead to commit Step 2 (DB) and Step 3 (spike), then lean docs: PRD → SRS → Architecture (+ short ADRs), then the vertical slice (agent → API → UI → deploy).
+
+**Open decisions:** none blocking.
 
 **Biggest risks**
-1. **Tamil STT quality is unverified.** `gemini-3.5-transcribe` docs do not list Tamil; Live API language table is ambiguous. → Phase 0 spike on real Tamil/Tanglish audio *before* committing to a pipeline. STT sits behind an interface so it can be swapped.
+1. **Real-voice Tamil quality is still unverified** (spike used clean synthetic speech). Mixed Tamil/English output script is unstable → pin it with an explicit instruction. `gemini-3.1-flash-live-preview` is a *preview* model → keep model id configurable, fallback `gemini-3.8-live` (romanises Tamil, slower).
 2. Free-tier Gemini: content is used to improve Google products (privacy disclosure needed); limits can change; TTS 3.8 models free only through 2026-12-31.
 3. LiveKit Build plan hard caps: 1 deployed agent, 1,000 agent-minutes/mo, 5 concurrent sessions; agents sleep when idle (cold start).
 4. Supabase free projects pause after ~1 week of inactivity; no automatic backups.
