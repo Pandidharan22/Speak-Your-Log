@@ -28,7 +28,8 @@ These are strictly followed for the entire project.
 | Backend API | Python 3.12 + FastAPI |
 | Realtime media (SFU) + agent runtime | LiveKit (Cloud Build plan) + `livekit-agents` (Python) |
 | STT / LLM / TTS | Gemini via Google AI Studio free tier (exact models fixed by Phase 0 spike) |
-| Database + user auth | Supabase (Postgres + Auth) |
+| Database | Supabase Postgres only (existing "Anthaathi" project, isolated schema + limited role). **Supabase Auth is NOT used.** |
+| User identity | Own device-session cookie (httpOnly, Secure, SameSite=Lax; only an HMAC hash stored in DB) |
 | Frontend | React + TypeScript (Vite), static hosting |
 
 ## Security invariants (a violation is a bug, whatever the feature)
@@ -37,7 +38,7 @@ These are strictly followed for the entire project.
 - Only FastAPI holds the encryption key. The agent worker and the browser never see the Proof token.
 - **The LLM never writes the log.** The log is the student's verbatim transcript. The LLM only generates *questions* and classifies intent. No summarising, no rewriting, no "cleaning up".
 - **The LLM never triggers a post.** Posting happens in deterministic code, only from the `CONFIRMING` state after a validated "yes, post it". Student speech is untrusted input (prompt injection).
-- Supabase tables holding credentials: RLS on, no policies for `anon`/`authenticated`; accessed only by the backend with the service-role key.
+- Supabase tables live in schema `speakyourlog` (not exposed to PostgREST), RLS on with no policies for `anon`/`authenticated`; accessed only by the backend via the limited `syl_app` role. The project's `service_role` key is never used or stored by this app.
 - Posting is idempotent-by-design (Proof's limit is 20 posts/day/token): atomic state transition before the call, no blind retries on ambiguous failures.
 
 ## Planned repo layout
@@ -66,15 +67,24 @@ PRD → SRS → Architecture.md → ADRs (`docs/adr/`) → Scale-out design (int
 
 _Last updated: 2026-10-01_
 
-**Phase:** 0 — Design & documentation (no application code yet).
+**DEADLINE: 2026-10-02 23:59 (user's local time).** Real working budget is only ~10–12 hours (user also sleeps/works) and Claude usage limits apply → scope is the thinnest vertical slice that satisfies the brief; docs are lean; scale-out design is interview prep and comes after the deployed demo works. Deploy something working early; polish later.
+
+**Phase:** 0 — Spike (no application code yet).
 
 **Done**
-- Brief received and analysed; research on free-tier limits completed (see "Verified facts").
-- Repo bootstrapped locally: `CLAUDE.md`, `.gitignore`. **Not yet committed** (awaiting user go-ahead). `git init` done; branches `main`/`develop` to be created at first commit.
+- Bootstrap committed: `main` @ `c7d4622`; `develop` has the journal + setup commits. Work happens on `develop`.
+- User approved design decisions D1–D8 (cascaded pipeline unless spike says Live is as good for Tamil; agent proposes / backend disposes; consent in code; AES-256-GCM token vault; idempotent post gateway).
+- Local `.env` filled by user (Gemini, LiveKit, Proof spike token, two dev crypto keys — validated as 32-byte base64, never printed). `DATABASE_URL` still a placeholder until the schema SQL is run.
 
-**Next step:** user signs off on the design decisions in the chat → write PRD.md.
+**Decisions made 2026-10-01**
+- **Supabase:** no new project possible (free limit hit). Reuse the user's existing project "Anthaathi" with strict isolation: dedicated schema `speakyourlog`, dedicated limited Postgres role `syl_app`, RLS on, schema NOT exposed to PostgREST, connect via the pooler URL. We never receive the project's `service_role` key (it would bypass RLS for all Anthaathi data).
+- **Auth (user ACCEPTED):** device-session cookie instead of magic link — magic link conflicts with the shared project (built-in SMTP = 2 mails/hour & team members only; custom SMTP / templates / `auth.users` are project-wide and would affect Anthaathi). Magic link is the documented upgrade path (ADR).
+- **Hosting (no card):** one FastAPI service serving the built React app on Render free (sleeps after 15 min → keep-warm ping); agent on LiveKit Cloud Build (1 deployment). Hugging Face Spaces dropped (new compute Spaces need a paid plan).
+- **Spike without recorded audio (user's call, time-boxed):** use Gemini TTS to synthesise Tamil / Tanglish / English audio with known text, feed it to the STT candidates, compare. Caveat: clean synthetic audio overstates accuracy; real-voice validation happens in the first live end-to-end test.
 
-**Open decisions:** submission deadline; auth method (Google sign-in vs email magic link); API hosting target; agent pipeline (cascaded vs Gemini Live) — to be settled by the Phase 0 spike.
+**Next step:** write + run the spike script (Gemini key smoke test, STT candidates on synthetic Tamil, latency, Proof `tools/list`) → pipeline decision.
+
+**Open decisions:** agent pipeline (cascaded vs Gemini Live) — settled by the spike.
 
 **Biggest risks**
 1. **Tamil STT quality is unverified.** `gemini-3.5-transcribe` docs do not list Tamil; Live API language table is ambiguous. → Phase 0 spike on real Tamil/Tanglish audio *before* committing to a pipeline. STT sits behind an interface so it can be swapped.

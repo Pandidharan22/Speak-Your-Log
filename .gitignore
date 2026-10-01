@@ -9,6 +9,10 @@ secrets/
 service-account*.json
 credentials*.json
 
+# --- Personal voice data & spike outputs (never commit) ---
+spike/audio/
+spike/out/
+
 # --- Python ---
 __pycache__/
 *.py[cod]
