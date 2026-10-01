@@ -6,7 +6,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 `[x]` done · `[ ]` to do · `[~]` in progress · **⚑ CUT** = first thing to drop if we run late.
 
-**Current step → 2.3 — Device session**
+**Current step → 2.4 — Token vault crypto**
 
 ---
 
@@ -29,7 +29,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 - [x] 2.1 FastAPI scaffold: settings from env, `/healthz`, ruff + pytest, CI workflow; add `AGENT_JOB_SECRET` to `.env.example` (user generates it; separate key per purpose) — `3287fc8`
 - [x] 2.2 DB layer: pooled psycopg (transaction-pooler safe), typed queries — `9347d25`
-- [ ] 2.3 Device session: cookie issue/verify (HMAC hash in DB), CSRF/origin check
+- [x] 2.3 Device session: cookie issue/verify (HMAC hash in DB), CSRF/origin check
 - [ ] 2.4 Token vault crypto: AES-256-GCM, AAD = user_id, key-id rotation + tests (round-trip, tamper, wrong user, wrong key)
 - [ ] 2.5 Proof client: `tools/list` validation, `post_log`, typed errors (401/429/timeout) + mocked tests
 - [ ] 2.6 Token endpoints: `PUT/GET/DELETE /api/proof-token` + tests proving the token never appears in any response or log

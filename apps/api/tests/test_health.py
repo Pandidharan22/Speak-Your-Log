@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import create_app
+from tests.conftest import PROD
 
 
 @pytest.fixture
@@ -38,14 +39,14 @@ def test_api_and_health_responses_are_not_cacheable(client):
 
 def test_hsts_only_in_production(make_settings):
     dev = TestClient(create_app(make_settings(app_env="development")))
-    prod = TestClient(create_app(make_settings(app_env="production")))
+    prod = TestClient(create_app(make_settings(**PROD)))
     assert "strict-transport-security" not in dev.get("/healthz").headers
     assert prod.get("/healthz").headers["strict-transport-security"].startswith("max-age=")
 
 
 def test_docs_available_in_dev_but_hidden_in_production(make_settings):
     dev = TestClient(create_app(make_settings(app_env="development")))
-    prod = TestClient(create_app(make_settings(app_env="production")))
+    prod = TestClient(create_app(make_settings(**PROD)))
     assert dev.get("/openapi.json").status_code == 200
     assert prod.get("/openapi.json").status_code == 404
     assert prod.get("/docs").status_code == 404

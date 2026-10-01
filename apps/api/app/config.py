@@ -7,6 +7,7 @@ least privilege: the API process simply does not know them.
 
 import base64
 import binascii
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Literal
@@ -16,6 +17,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 KEY_BYTES = 32
+_ORIGIN_RE = re.compile(r"^https?://[^/\s?#]+$")
+# Browsers' origins during local development (Vite dev server and the API itself).
+_DEV_ORIGINS = frozenset(
+    {
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000",
+    }
+)
 
 
 def _decode_key(name: str, value: SecretStr) -> bytes:
@@ -59,6 +70,10 @@ class Settings(BaseSettings):
 
     proof_mcp_url: str = "https://proof.zeromaintenanceengineer.in/api/mcp"
 
+    # The one public origin the browser app is served from (scheme://host[:port], no path).
+    # State-changing /api requests must carry exactly this Origin (CSRF defence in depth).
+    public_base_url: str = "http://localhost:8000"
+
     @field_validator("database_url")
     @classmethod
     def _database_scheme(cls, v: SecretStr) -> SecretStr:
@@ -71,6 +86,14 @@ class Settings(BaseSettings):
     def _livekit_scheme(cls, v: str) -> str:
         if not v.startswith(("wss://", "ws://")):
             raise ValueError("livekit_url must start with wss:// (or ws:// for local dev)")
+        return v
+
+    @field_validator("public_base_url")
+    @classmethod
+    def _public_origin(cls, v: str) -> str:
+        v = v.rstrip("/")
+        if not _ORIGIN_RE.fullmatch(v):
+            raise ValueError("public_base_url must look like https://host[:port] with no path")
         return v
 
     @field_validator("proof_mcp_url")
@@ -92,9 +115,28 @@ class Settings(BaseSettings):
             raise ValueError("session_hmac_key, agent_job_secret and token_enc_key_v1 must differ")
         if self.token_enc_key_id not in self.token_enc_keys:
             raise ValueError(f"no encryption key configured for id {self.token_enc_key_id!r}")
-        if self.app_env == "production" and not self.livekit_url.startswith("wss://"):
-            raise ValueError("livekit_url must be wss:// in production")
+        if self.app_env == "production":
+            if not self.livekit_url.startswith("wss://"):
+                raise ValueError("livekit_url must be wss:// in production")
+            if not self.public_base_url.startswith("https://"):
+                raise ValueError("public_base_url must be https:// in production")
         return self
+
+    @property
+    def cookie_secure(self) -> bool:
+        return self.app_env == "production"
+
+    @property
+    def cookie_name(self) -> str:
+        # The __Host- prefix makes browsers require Secure + Path=/ and reject a Domain
+        # attribute, so a sibling subdomain cannot plant or overwrite our session cookie.
+        return "__Host-syl_session" if self.cookie_secure else "syl_session"
+
+    @property
+    def allowed_origins(self) -> frozenset[str]:
+        if self.app_env == "production":
+            return frozenset({self.public_base_url})
+        return frozenset({self.public_base_url}) | _DEV_ORIGINS
 
     @property
     def token_enc_keys(self) -> dict[str, bytes]:

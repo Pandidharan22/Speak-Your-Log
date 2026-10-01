@@ -29,7 +29,11 @@ VALID = {
     "livekit_url": "wss://example.livekit.cloud",
     "livekit_api_key": "lk-key",
     "livekit_api_secret": "lk-secret",
+    "public_base_url": "http://localhost:8000",
 }
+
+# Production is stricter (https public URL, wss LiveKit); tests that need it spread this in.
+PROD = {"app_env": "production", "public_base_url": "https://app.example.com"}
 
 SETTING_ENV_VARS = [k.upper() for k in VALID] + ["PROOF_MCP_URL", "GEMINI_API_KEY"]
 

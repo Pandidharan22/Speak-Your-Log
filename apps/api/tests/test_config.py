@@ -4,7 +4,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.config import Settings
-from tests.conftest import KEY_A, KEY_B, KEY_C, VALID
+from tests.conftest import KEY_A, KEY_B, KEY_C, PROD, VALID
 
 
 def test_valid_settings_load(make_settings):
@@ -117,7 +117,7 @@ def test_wrong_url_schemes_rejected(make_settings, field, bad):
 
 def test_production_requires_secure_websocket(make_settings):
     with pytest.raises(ValidationError, match="wss://"):
-        make_settings(app_env="production", livekit_url="ws://localhost:7880")
+        make_settings(**PROD, livekit_url="ws://localhost:7880")
     assert make_settings(app_env="development", livekit_url="ws://localhost:7880")
 
 
@@ -132,3 +132,30 @@ def test_settings_are_immutable(make_settings):
     s = make_settings()
     with pytest.raises(ValidationError):
         s.app_env = "production"  # type: ignore[misc]
+
+
+def test_production_requires_https_public_url(make_settings):
+    with pytest.raises(ValidationError, match="https://"):
+        make_settings(app_env="production", public_base_url="http://app.example.com")
+
+
+@pytest.mark.parametrize(
+    "bad", ["app.example.com", "https://app.example.com/path", "https://a b.com", "ftp://x.com", ""]
+)
+def test_public_base_url_must_be_a_bare_origin(make_settings, bad):
+    with pytest.raises(ValidationError):
+        make_settings(public_base_url=bad)
+
+
+def test_trailing_slash_on_public_base_url_is_normalised(make_settings):
+    assert make_settings(public_base_url="https://app.example.com/").public_base_url == (
+        "https://app.example.com"
+    )
+
+
+def test_cookie_and_origin_policy_differs_between_dev_and_production(make_settings):
+    dev, prod = make_settings(), make_settings(**PROD)
+    assert (dev.cookie_name, dev.cookie_secure) == ("syl_session", False)
+    assert (prod.cookie_name, prod.cookie_secure) == ("__Host-syl_session", True)
+    assert "http://localhost:5173" in dev.allowed_origins  # Vite dev server
+    assert prod.allowed_origins == frozenset({"https://app.example.com"})  # nothing else

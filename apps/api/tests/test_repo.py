@@ -196,3 +196,39 @@ def test_failed_request_leaves_no_committed_rows(real_db):
             "select count(*) as n from speakyourlog.users where id = %s", (marker_id,)
         ).fetchone()["n"]
     assert n == 0
+
+
+def test_purge_removes_abandoned_users_but_never_anyone_with_data(conn):
+    abandoned = repo.create_user(conn)  # no session, no token, no interview
+    with_session = repo.create_user(conn)
+    repo.create_device_session(conn, with_session.id, os.urandom(32), future())
+    with_token = repo.create_user(conn)
+    save_credential(conn, with_token.id)
+    with_interview = repo.create_user(conn)  # deleting this user would cascade-delete the interview
+    conn.execute(
+        "insert into speakyourlog.interview_sessions (user_id, room_name) values (%s, %s)",
+        (with_interview.id, f"room-{uuid.uuid4()}"),
+    )
+
+    repo.purge_orphan_users(conn)
+
+    exists = lambda u: conn.execute(  # noqa: E731
+        "select count(*) as n from speakyourlog.users where id = %s", (u.id,)
+    ).fetchone()["n"]
+    assert exists(abandoned) == 0
+    assert exists(with_session) == exists(with_token) == exists(with_interview) == 1
+    interviews = conn.execute(
+        "select count(*) as n from speakyourlog.interview_sessions where user_id = %s",
+        (with_interview.id,),
+    ).fetchone()["n"]
+    assert interviews == 1
+
+
+def test_expired_session_makes_its_user_purgeable(conn):
+    user = repo.create_user(conn)
+    repo.create_device_session(conn, user.id, os.urandom(32), past())
+    repo.purge_stale(conn)  # expired session removed, then the now-orphaned user
+    gone = conn.execute(
+        "select count(*) as n from speakyourlog.users where id = %s", (user.id,)
+    ).fetchone()["n"]
+    assert gone == 0

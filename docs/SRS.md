@@ -7,7 +7,7 @@
 ### Identity & Proof connection
 | ID | Requirement |
 |---|---|
-| FR-1 | On first visit the system MUST create an anonymous user and issue a device-session cookie (httpOnly, Secure, SameSite=Lax, ≥128-bit random). Only an HMAC-SHA256 of the cookie is stored. |
+| FR-1 | On first visit the system MUST create an anonymous user and issue a device-session cookie (httpOnly, Secure, SameSite=Lax, ≥128-bit random, 90-day lifetime; `__Host-` prefixed in production). Only an HMAC-SHA256 of the cookie is stored. New-user creation is limited to 10 per minute per IP, and state-changing `/api` requests must carry the app's own `Origin`. |
 | FR-2 | The user MUST be able to submit their Proof token once. The system MUST validate it against Proof (`tools/list` must succeed and expose `post_log`) before storing it. |
 | FR-3 | The token MUST be stored only as AES-256-GCM ciphertext (random 12-byte nonce, AAD = user id, key id recorded). Plaintext MUST exist only in server memory during validate/post. |
 | FR-4 | No API response, log line, cookie, local/session storage entry, or LiveKit metadata MAY contain the token. The UI MAY show only "connected" and the last 4 characters. |

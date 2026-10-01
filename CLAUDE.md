@@ -83,7 +83,7 @@ _Last updated: 2026-10-01_
 
 **DEADLINE: 2026-10-02 23:59 (user's local time).** Real working budget is only ~10–12 hours (user also sleeps/works) and Claude usage limits apply → scope is the thinnest vertical slice that satisfies the brief; docs are lean; scale-out design is interview prep and comes after the deployed demo works. Deploy something working early; polish later.
 
-**Phase:** 0 and 1 complete. **Phase 2 in progress:** 2.1 scaffold + 2.2 DB layer done (sync psycopg pool max 3, typed queries in `app/repo.py`, `/healthz` + `/readyz`, 68 tests of which 15 are integration and skip without `DATABASE_URL`) — see Execution_plan.md.
+**Phase:** 0 and 1 complete. **Phase 2 in progress:** 2.1 scaffold, 2.2 DB layer, 2.3 device session done (cookie `syl_session` / `__Host-syl_session` in prod, HMAC-hashed in DB, 90-day TTL, Origin/CSRF check on `/api` writes, per-IP limit on new users, `POST /api/session`, `current_user` dependency; 111 tests, 17 integration) — see Execution_plan.md.
 
 **Done**
 - Bootstrap committed: `main` @ `c7d4622`; `develop` has the journal + setup commits. Work happens on `develop`.
@@ -106,9 +106,7 @@ _Last updated: 2026-10-01_
 
 **Committed so far:** Phase 0 (repo, env, DB, spike) — `8cfba87` on `develop`. Phase 1 docs committed (`Execution_plan.md`, `docs/PRD.md`, `docs/SRS.md`, `docs/Architecture.md`, `docs/adr/001–007`); commit hashes are recorded in `Execution_plan.md`.
 
-**Local .env gap:** `AGENT_JOB_SECRET` is not yet in the user's `.env` (the API refuses to boot without it — by design).
-
-**Next step:** 2.3 device session (cookie issue/verify, HMAC hash, Origin check). The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
+**Next step:** 2.4 token vault crypto (AES-256-GCM, AAD = user_id, key-id rotation). The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
 
 **Open decisions:** none blocking.
 

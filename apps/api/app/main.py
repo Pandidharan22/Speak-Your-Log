@@ -8,14 +8,18 @@ from collections.abc import AsyncIterator, Awaitable, Callable
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request, Response
+from fastapi.responses import JSONResponse
 
 from app import __version__
 from app.config import Settings, get_settings
 from app.db import Database
+from app.ratelimit import RateLimiter
+from app.routers import session as session_router
 
 # Microphone is required by the product; everything else is denied.
 _PERMISSIONS_POLICY = "microphone=(self), camera=(), geolocation=(), payment=()"
 _NO_STORE_PATHS = ("/api/", "/healthz", "/readyz")
+_UNSAFE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
 
 def create_app(settings: Settings | None = None, db: Database | None = None) -> FastAPI:
@@ -44,6 +48,26 @@ def create_app(settings: Settings | None = None, db: Database | None = None) -> 
     )
     app.state.settings = settings
     app.state.db = db
+    # New anonymous users per client IP. (Behind Render, run uvicorn with --proxy-headers so
+    # request.client is the real client, not the proxy.)
+    app.state.session_create_limiter = RateLimiter(limit=10, window_seconds=60)
+
+    # Registered BEFORE the security-headers middleware so that it sits inside it and its 403s
+    # still get the security headers (the last-added middleware is the outermost).
+    @app.middleware("http")
+    async def require_same_origin(
+        request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
+        # CSRF defence in depth (the cookie is also SameSite=Lax): browser requests that change
+        # state must come from our own origin. /internal/* is called by the agent with a signed
+        # token, not a cookie, so it is deliberately outside this rule.
+        if (
+            request.method in _UNSAFE_METHODS
+            and request.url.path.startswith("/api/")
+            and request.headers.get("origin") not in settings.allowed_origins
+        ):
+            return JSONResponse({"detail": "origin_not_allowed"}, status_code=403)
+        return await call_next(request)
 
     @app.middleware("http")
     async def security_headers(
@@ -66,6 +90,8 @@ def create_app(settings: Settings | None = None, db: Database | None = None) -> 
         # Liveness only: no DB or upstream calls, so the keep-warm ping is cheap and
         # never loads the shared database.
         return {"status": "ok"}
+
+    app.include_router(session_router.router)
 
     @app.get("/readyz", include_in_schema=False)
     def readyz(response: Response) -> dict[str, str]:

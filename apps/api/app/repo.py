@@ -82,6 +82,24 @@ def purge_expired_sessions(conn: psycopg.Connection) -> int:
     ).rowcount
 
 
+def purge_orphan_users(conn: psycopg.Connection) -> int:
+    """Delete anonymous users that can never be used again: no session, no token, no interviews.
+
+    Interviews are checked explicitly because deleting a user cascades to their interviews.
+    """
+    return conn.execute(
+        "delete from speakyourlog.users u"
+        " where not exists (select 1 from speakyourlog.device_sessions s where s.user_id = u.id)"
+        "   and not exists (select 1 from speakyourlog.proof_credentials c where c.user_id = u.id)"
+        "   and not exists (select 1 from speakyourlog.interview_sessions i where i.user_id = u.id)"
+    ).rowcount
+
+
+def purge_stale(conn: psycopg.Connection) -> None:
+    purge_expired_sessions(conn)
+    purge_orphan_users(conn)
+
+
 # ---- Proof-token vault (ciphertext only; encryption happens in app/crypto, step 2.4) -------
 
 
