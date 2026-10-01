@@ -27,5 +27,6 @@ App-level encryption makes us responsible for correct crypto use, so we use a ve
 - Revisit: KMS/HSM envelope encryption and per-tenant data keys (scale design).
 
 ## Action items
-1. [ ] `crypto.py` + unit tests (Execution_plan 2.4)
+1. [x] `crypto.py` + unit tests incl. a golden vector that pins the stored format (Execution_plan 2.4)
 2. [ ] Test that no response/log contains the token (2.6)
+3. [ ] Rotation runbook: add a `token_enc_key_v2` setting, set `TOKEN_ENC_KEY_ID=v2`, re-encrypt rows with `TokenVault.reencrypt`, then retire `v1` (the primitive exists and is tested; the settings field is added when first needed)

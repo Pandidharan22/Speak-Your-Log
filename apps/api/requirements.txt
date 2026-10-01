@@ -3,3 +3,4 @@ uvicorn[standard]==0.54.0
 pydantic-settings==2.15.0
 psycopg[binary,pool]==3.3.6
 psycopg-pool==3.3.3
+cryptography==50.0.2
