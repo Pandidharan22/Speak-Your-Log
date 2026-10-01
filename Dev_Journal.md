@@ -33,3 +33,15 @@ One entry per committed step: what was done and why. Newest at the bottom. Entri
 **Why:** The only Supabase project is shared with another live app (Anthaathi), so isolation is the requirement, not a nicety. Additive-only SQL, a schema not exposed to the REST API, RLS on every table, and a role that cannot touch `auth`/`public`/`storage`/`vault` keep any bug or leak in this app from reaching Anthaathi. Only a hash of the device cookie is stored, and the Proof token is stored only as AES-GCM ciphertext (the key lives outside the DB). The consent state machine is a CHECK-constrained column so an invalid state is impossible, and the `confirming → posting` transition can be a single atomic UPDATE.
 
 **Verification:** admin query matched every expected value; `verify_isolation.py` passed 14/14 against the live database. "Success, no rows returned" only means no error, so the negative tests (denied on auth/storage/vault/public, cannot create roles or tables) are what actually prove isolation. Known note: the role can read two Postgres statistics views in `extensions`; harmless platform views.
+
+---
+
+## Step 3 — Phase 0 spike: pipeline decision (`6d79ef5`, 2026-10-01)
+
+**What:** Three scripts (`spike/01_smoke.py`, `02_stt_bakeoff.py`, `03_live.py`) and `spike/RESULTS.md`. Verified the Gemini key and Proof `tools/list`, then tested batch STT and the Live API on Tamil / Tanglish / English speech synthesised by Gemini TTS.
+
+**Findings:** (1) Tamil works even though `gemini-3.5-transcribe` does not list it. (2) Batch STT costs 3–5 s per utterance, so a cascaded STT→LLM→TTS pipeline would leave 8–10 s of silence per turn. (3) `gemini-3.1-flash-live-preview` answers in ~1 s, understands Tamil and naturally asks the follow-up that quotes the student. (4) `gemini-3.8-live` romanises Tamil; the 2.5 native-audio model is accurate but 6–8 s slow. (5) Proof logs are public, and `why` is required for verb `decided`.
+
+**Decision (ADR-001 to follow):** conversation on Gemini Live; the stored transcript comes from Live input transcription, optionally refined per utterance by batch transcribe off the latency path; posting stays in deterministic code; the read-back text is also shown on screen. This reverses my earlier default of a cascaded pipeline, which is why the spike came before any build.
+
+**Limits of the evidence:** clean synthetic speech flatters recognisers. Real-voice testing is the first end-to-end check.
