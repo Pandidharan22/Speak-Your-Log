@@ -174,6 +174,25 @@ def test_creating_users_is_rate_limited_per_ip_but_returning_visitors_are_not(ma
     assert int(blocked.headers["retry-after"]) >= 1
 
 
+def test_new_users_are_capped_overall_even_if_every_request_claims_a_different_ip(
+    make_client, conn
+):
+    # Behind a proxy the client IP can be spoofed, so the per-IP limit alone is not enough to
+    # keep a flood of anonymous users out of the shared database.
+    from app.ratelimit import RateLimiter
+
+    users = count(conn, "users")
+    global_limiter = RateLimiter(limit=3, window_seconds=60)
+    statuses = []
+    for _ in range(6):
+        fresh, _ = make_client()
+        fresh.app.state.session_create_limiter = RateLimiter(limit=10_000, window_seconds=60)
+        fresh.app.state.session_create_global_limiter = global_limiter
+        statuses.append(fresh.post("/api/session").status_code)
+    assert statuses == [200, 200, 200, 429, 429, 429]
+    assert count(conn, "users") == users + 3  # refused requests created nothing
+
+
 def test_wrong_origin_cannot_create_sessions(make_client, conn):
     client, _ = make_client()
     users = count(conn, "users")

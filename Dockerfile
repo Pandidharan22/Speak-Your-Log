@@ -34,6 +34,8 @@ ENV WEB_DIST_DIR=/srv/web_dist \
     APP_ENV=production
 EXPOSE 8000
 
-# --proxy-headers: behind Render's proxy, trust X-Forwarded-For so request.client is the real
-# visitor (the per-IP rate limits depend on it). The container is only reachable through that proxy.
+# --proxy-headers: behind Render's proxy, read X-Forwarded-For so request.client is the visitor.
+# With '*' uvicorn trusts the LEFTMOST entry, which a client can set, so per-IP limits are a
+# politeness measure, not a security boundary: abuse of the shared database is bounded by global
+# caps instead (see app/main.py). The container is only reachable through Render's proxy.
 CMD ["sh", "-c", "exec uvicorn app.main:create_app --factory --host 0.0.0.0 --port ${PORT:-8000} --proxy-headers --forwarded-allow-ips='*' --no-server-header"]

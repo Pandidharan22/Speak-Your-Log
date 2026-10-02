@@ -74,6 +74,27 @@ def test_rate_limiter_memory_is_bounded():
     assert len(rl._hits) <= 100
 
 
+def test_rate_limiter_memory_is_bounded_even_when_nothing_has_expired():
+    # A flood of distinct keys inside ONE window (e.g. spoofed client IPs): expiry frees nothing.
+    rl = RateLimiter(limit=1, window_seconds=600, clock=Clock(), max_keys=100)
+    for i in range(5_000):
+        rl.allow(f"ip-{i}")
+    assert len(rl._hits) <= 100
+
+
+def test_when_flooded_the_limiter_keeps_the_newest_keys_and_still_enforces_them():
+    clock = Clock()
+    rl = RateLimiter(limit=1, window_seconds=600, clock=clock, max_keys=10)
+    # Eviction fires on the 11th, 17th, 23rd and 29th insertion (11 keys -> keep 5), so ending
+    # on the 29th means the newest key was present at the moment of eviction.
+    for i in range(29):
+        clock.now += 1
+        rl.allow(f"ip-{i}")
+    assert not rl.allow("ip-28")  # the newest key survived the eviction and is still limited
+    assert rl.allow("ip-0")  # the oldest did not (it is simply counted afresh)
+    assert len(rl._hits) <= 10
+
+
 # ---- Origin check (CSRF defence in depth) ---------------------------------------------------
 
 

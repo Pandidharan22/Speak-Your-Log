@@ -48,4 +48,10 @@ class RateLimiter:
             return max(1, int(self._window - (now - start)) + 1)
 
     def _evict(self, now: float) -> None:
-        self._hits = {k: v for k, v in self._hits.items() if now - v[0] < self._window}
+        live = {k: v for k, v in self._hits.items() if now - v[0] < self._window}
+        if len(live) > self._max_keys:
+            # A flood of distinct keys inside one window: expiry frees nothing, so keep only the
+            # newest half rather than let memory grow without bound.
+            newest = sorted(live.items(), key=lambda kv: kv[1][0], reverse=True)
+            live = dict(newest[: self._max_keys // 2])
+        self._hits = live

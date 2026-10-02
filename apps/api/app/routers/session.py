@@ -29,7 +29,8 @@ def bootstrap_session(
             # Only *creating* users is rate limited; returning visitors never hit this.
             limiter = request.app.state.session_create_limiter
             ip = request.client.host if request.client else "unknown"
-            if not limiter.allow(ip):
+            global_limiter = request.app.state.session_create_global_limiter
+            if not (limiter.allow(ip) and global_limiter.allow("all")):
                 raise HTTPException(
                     status_code=429,
                     detail="too_many_new_sessions",

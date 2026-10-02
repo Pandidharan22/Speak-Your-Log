@@ -107,6 +107,9 @@ def create_app(
     # New anonymous users per client IP. (Behind Render, run uvicorn with --proxy-headers so
     # request.client is the real client, not the proxy.)
     app.state.session_create_limiter = RateLimiter(limit=10, window_seconds=60)
+    # ...and ALL new anonymous users together: behind a proxy the client IP can be spoofed, so the
+    # per-IP limit alone cannot protect the shared database from a flood of fake users.
+    app.state.session_create_global_limiter = RateLimiter(limit=60, window_seconds=60)
 
     @app.exception_handler(RequestValidationError)
     async def validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:

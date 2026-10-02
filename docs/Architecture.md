@@ -130,3 +130,11 @@ Structured JSON logs (event, interview_id, state, latency_ms, error class). Metr
 ## 11. Known limits (MVP)
 
 Per-device identity (no cross-device login) · Gemini Live preview model · free-tier quotas · accuracy measured on synthetic speech until Phase 6.4 · no audio retention means no after-the-fact re-transcription.
+
+
+### Review findings carried as known limits (2026-10-02 whole-system review)
+
+- **Per-IP rate limits are not a security boundary.** Behind Render's proxy, uvicorn is configured to trust `X-Forwarded-For` from any hop, so it takes the leftmost entry, which a client can set. The per-IP limits therefore only slow down honest clients. Abuse of the shared database is bounded by global caps instead (60 new anonymous users per minute overall; 4 concurrent interviews; 20 posts per day per token) and by the fact that starting an interview requires a token Proof itself accepts.
+- **The rate limiter is per process** (one free instance). More instances would multiply every limit; a shared store replaces it at scale (see the scale-out design).
+- **The job token travels through LiveKit's dispatch metadata** (server-side; the browser never sees it). It authorises one interview and expires in 20 minutes; anyone with access to the LiveKit project's dashboard could read it during that window, but all it can do is store answers for that one interview or say "confirmed" after the gateway's own checks.
+- **The model may announce the outcome twice** (its automatic reply, then the system's explicit one). Cosmetic; ADR-008 addendum.
