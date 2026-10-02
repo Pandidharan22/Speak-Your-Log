@@ -22,6 +22,7 @@ from interview.api_client import ApiClient
 from interview.driver import InterviewDriver
 from interview.jobinfo import parse_job_metadata
 from interview.lifecycle import Lifecycle
+from interview.script import OwnRequests
 from interview.settings import AgentSettings
 from interview.verify import coverage, was_spoken
 
@@ -48,6 +49,7 @@ class LiveKitVoice:
 
     def __init__(self, session: AgentSession, agent: Agent) -> None:
         self._session, self._agent = session, agent
+        self.requests = OwnRequests()
 
     async def set_instructions(self, text: str) -> None:
         await self._agent.update_instructions(text)
@@ -60,7 +62,7 @@ class LiveKitVoice:
         # student talking over the speech is reported to the driver instead: it repeats a
         # read-back that was cut off rather than accepting consent to words not heard.
         started = time.monotonic()
-        handle = self._session.generate_reply(instructions=instructions)
+        handle = self._session.generate_reply(user_input=self.requests.add(instructions))
         try:
             await asyncio.wait_for(handle.wait_for_playout(), SPEAK_TIMEOUT_SECONDS)
         except TimeoutError:
@@ -141,7 +143,8 @@ async def entrypoint(ctx: agents.JobContext) -> None:
     # Armed for Q1 from the moment the agent exists. Updating instructions mid-session makes this
     # model restart its connection, which swallowed a greeting requested right after an update.
     agent = Interviewer(InterviewDriver.initial_instructions())
-    driver = InterviewDriver(LiveKitVoice(session, agent), api_client)
+    voice = LiveKitVoice(session, agent)
+    driver = InterviewDriver(voice, api_client)
     lifecycle = Lifecycle(driver, lambda: ctx.shutdown(reason="interview finished"))
 
     @session.on("conversation_item_added")
@@ -152,6 +155,8 @@ async def entrypoint(ctx: agents.JobContext) -> None:
         if not text:
             return
         if role == "user":  # a finished student utterance, final transcript (ADR-008)
+            if voice.requests.is_ours(text):  # our own request, echoed as a conversation item
+                return
             lifecycle.spawn(lambda: driver.on_student_turn(text), "student_turn")
         elif role == "assistant":
             lifecycle.spawn(lambda: driver.on_agent_turn(text), "agent_turn")

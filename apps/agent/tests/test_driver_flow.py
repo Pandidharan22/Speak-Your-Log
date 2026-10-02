@@ -561,3 +561,50 @@ def test_a_yes_spoken_during_the_read_back_does_not_count_as_consent():
         assert backend.posts == ["yes, post it"]
 
     run(go())
+
+
+def test_the_success_message_states_it_as_a_fact_from_the_system_not_the_models_doing():
+    from interview.script import outcome_instructions
+
+    text = outcome_instructions(PostResult.POSTED)
+    assert "The system has just posted" in text and "you did not post it" in text
+
+
+def test_the_prompt_lets_the_model_report_the_systems_outcome_without_letting_it_post():
+    from interview.prompts import SYSTEM_INSTRUCTIONS
+
+    flat = " ".join(SYSTEM_INSTRUCTIONS.replace("\\n", " ").split())
+    assert "cannot save or post anything" in flat  # the model still has no way to post
+    assert "outcome of a posting attempt that the system made" in flat
+
+
+def test_our_own_requests_are_recognised_and_ordinary_speech_never_is():
+    from interview.script import OwnRequests
+
+    requests = OwnRequests()
+    text = "Read the student's log back.\nThen stop."
+    assert requests.add(text) == text  # returned unchanged, ready to send
+    assert requests.is_ours(text)
+    assert requests.is_ours(
+        "  Read the student's   log back. Then stop.  "
+    )  # whitespace-insensitive
+    for said in ("yes, post it", "I tried an IR sensor", "read the student's log back", ""):
+        assert not requests.is_ours(said), said
+
+
+def test_requests_carry_no_visible_marker_the_model_could_imitate_aloud():
+    from interview.prompts import SYSTEM_INSTRUCTIONS
+    from interview.script import CLOSING, NUDGE, outcome_instructions
+
+    assert "[System" not in SYSTEM_INSTRUCTIONS
+    for text in (NUDGE, *CLOSING.values(), outcome_instructions(PostResult.POSTED)):
+        assert "[" not in text
+
+
+def test_the_automatic_reply_to_the_consent_turn_may_not_guess_the_posting_result():
+    # Live finding: asked only for a neutral acknowledgement, the model once invented
+    # "the system tried to post it, but it didn't work" before the real outcome was known.
+    for step in (Step.FOLLOWUP, Step.READBACK, Step.CONFIRM, Step.POSTING):
+        text = armed_instructions(step)
+        assert "You do not know what happens next" in text
+        assert "never say or guess that anything was posted, saved, sent or failed" in text

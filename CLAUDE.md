@@ -87,7 +87,7 @@ _Last updated: 2026-10-02_
 
 **Phase:** 0–5 complete except 3.5 (follow-up eval set) and 5.5 (a11y/UX-copy pass), both cut. Phase 6 **prepared** (6.1 files written: root `Dockerfile`, `apps/agent/Dockerfile`, `render.yaml`, `DEPLOY.md`, `docs/Deploy_Checklist.md`; API serves the built UI with a strict CSP via `app/static.py`). 6.2/6.3 (Render, `lk agent create`) and 6.4 (real-voice test) need the owner. Counts: ~560 API, 406 agent, 77 web tests; every security-relevant module mutation-tested (see Dev_Journal).
 
-**Key live findings (Step 19 in the journal):** Gemini Live drops an explicit `generate_reply` made while it is producing its own filler reply, and LiveKit still reports the handle complete → `LiveKitVoice.speak` waits for idle, and the read-back is verified against the model's own transcript (`interview/verify.py`); an unheard read-back is repeated once, then the session ends without posting. **Not yet seen live:** the final "yes, post it" → post leg (Gemini returned `1011` errors during the last runs; unit-tested only). Success reply shape of Proof's `post_log` also unverified.
+**Key live findings (Step 19 and 22 in the journal, ADR-008 addendum):** the full interview → verified read-back → "yes, post it" → post (to a FAKE Proof) → spoken outcome chain has been run live on `gemini-3.1-flash-live-preview`. Rules learned: wait for the model to be idle before explicit speech; verify the read-back against the model's own transcript (`interview/verify.py`), repeat once then end without posting; send explicit requests as plain user-role messages recognised by exact text (`OwnRequests`), never as `instructions=` and never with a visible marker; the neutral auto-reply is a literal "Okay.". Known: the outcome may be announced twice (cosmetic); the preview model intermittently returns `1011` (sessions end harmlessly). Success reply shape of Proof's `post_log` is still unverified (first real post).
 
 **Local E2E harness (scratchpad, not in repo):** real API + DB with a FAKE Proof (`e2e_serve.py`), `apps/agent/tools/probe.py` plays synthetic speech (`wait_N` pseudo-arg pauses N s). Nothing was ever posted to the real Proof.
 
@@ -114,7 +114,7 @@ _Last updated: 2026-10-02_
 
 **Committed so far:** Phase 0 (repo, env, DB, spike) — `8cfba87` on `develop`. Phase 1 docs committed (`Execution_plan.md`, `docs/PRD.md`, `docs/SRS.md`, `docs/Architecture.md`, `docs/adr/001–007`); commit hashes are recorded in `Execution_plan.md`.
 
-**Next step:** retry the live yes→post run with the fake Proof when Gemini is healthy; commit deploy files (this step); then 7.x: README finalise, code/security review pass, draft the Proof build log for the owner's approval (do NOT post), Phase 8 docs/scale. Owner actions are listed in DEPLOY.md.
+**Next step:** 7.x: README finalise, code/security review pass, draft the Proof build log for the owner's approval (do NOT post), Phase 8 docs/scale. Owner actions are listed in DEPLOY.md.
 
 **Open decisions:** none blocking.
 

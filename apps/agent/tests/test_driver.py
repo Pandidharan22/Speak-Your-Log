@@ -232,8 +232,8 @@ def test_q3_is_armed_for_exactly_one_quoting_follow_up_question():
 @pytest.mark.parametrize("step", [Step.FOLLOWUP, Step.READBACK, Step.CONFIRM, Step.POSTING])
 def test_branching_steps_are_armed_with_a_neutral_filler_only(step):
     step_part = armed_instructions(step).split("Current step:", 1)[1]  # not the shared system rules
-    assert "only a very short neutral acknowledgement" in step_part
-    assert "nothing about saving or posting" in step_part
+    assert "exactly one word and nothing else" in step_part
+    assert "never say or guess that anything was posted" in step_part
     assert "ask exactly" not in step_part.lower()  # the driver, not the model, decides what's next
     assert "?" not in step_part.replace('"Okay."', "")  # no question for the model to ask
 

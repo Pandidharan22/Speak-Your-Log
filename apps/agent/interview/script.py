@@ -24,8 +24,10 @@ QUESTIONS = {
 _NEXT_QUESTION = {Step.Q1: Step.Q2, Step.Q2: Step.Q3}
 
 _NEUTRAL = (
-    "Reply with only a very short neutral acknowledgement in the student's language, such as "
-    '"Okay." or "Hmm, okay." Say nothing else: no questions, and nothing about saving or posting.'
+    'Reply with exactly one word and nothing else: "Okay." (or the same word in the student\'s '
+    'language, for example "சரி."). Say nothing more, even if the student asks a question or says '
+    "they agree. You do not know what happens next: never say or guess that anything was posted, "
+    "saved, sent or failed. The system will tell you the result when there is one."
 )
 
 
@@ -59,6 +61,31 @@ def armed_instructions(step: Step) -> str:
     else:  # FOLLOWUP, READBACK, CONFIRM, POSTING: the next move is the driver's, not the model's
         turn = _NEUTRAL
     return f"{SYSTEM_INSTRUCTIONS}\n\nCurrent step: {step.value}. {turn}"
+
+
+class OwnRequests:
+    """Remembers the explicit requests we send the model, so their echo in the conversation is
+    never mistaken for the student speaking.
+
+    They are sent as plain user-role messages: Gemini Live treats a model-role turn as words it has
+    ALREADY said and continues after it (it skipped the read-back). A visible marker such as
+    "[System request]" was tried and made the model imitate it aloud, so recognition is by exact
+    text instead."""
+
+    def __init__(self) -> None:
+        self._sent: set[str] = set()
+
+    @staticmethod
+    def _key(text: str) -> str:
+        return " ".join(text.split())
+
+    def add(self, instructions: str) -> str:
+        """Register `instructions` as ours and return it, ready to send."""
+        self._sent.add(self._key(instructions))
+        return instructions
+
+    def is_ours(self, text: str) -> bool:
+        return self._key(text) in self._sent
 
 
 # ---- explicit speech at branching moments --------------------------------------------------------
@@ -131,7 +158,9 @@ def outcome_instructions(result: PostResult, reason: str | None = None) -> str:
     """What to say after a post attempt. Only a real success may say it was posted."""
     if result is PostResult.POSTED:
         return (
-            "Tell the student, warmly and briefly, that their log has been posted and they can see "
+            "The system has just posted the student's log to their Proof profile successfully (you "
+            "did not post it, the system did). Tell the student, warmly and briefly, that their "
+            "log has been posted and they can see "
             "it on their Proof profile. Do not read out any web address. Thank them and say "
             "goodbye." + _STOP
         )
