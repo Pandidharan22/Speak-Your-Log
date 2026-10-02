@@ -48,8 +48,8 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 ## Phase 4 — Post gateway (≈0.75 h)
 
-- [x] 4.1 `confirming → posting` atomic transition, daily-limit guard, `post_log` call, store URL; lazy purge of drafts older than 24 h (SRS NFR-3)
-- [x] 4.2 Failure-injection tests: Proof timeout → `post_unknown` (no blind retry), 401 → "reconnect token", 429 → friendly message, double-submit → one post
+- [x] 4.1 `confirming → posting` atomic transition, daily-limit guard, `post_log` call, store URL; lazy purge of drafts older than 24 h (SRS NFR-3) — `7dabfa5`
+- [x] 4.2 Failure-injection tests: Proof timeout → `post_unknown` (no blind retry), 401 → "reconnect token", 429 → friendly message, double-submit → one post — `7dabfa5`
 
 ## Phase 5 — Web UI (≈2 h)
 
