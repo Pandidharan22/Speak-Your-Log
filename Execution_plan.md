@@ -6,7 +6,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 `[x]` done · `[ ]` to do · `[~]` in progress · **⚑ CUT** = first thing to drop if we run late.
 
-**Current step → 5.x - commit the web UI, then deploy files**
+**Current step → 3.5/5.5 optional, then Phase 6 deploy files**
 
 ---
 
@@ -53,10 +53,10 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 ## Phase 5 — Web UI (≈2 h)
 
-- [ ] 5.1 Vite + React + TS scaffold, LiveKit client, same-origin API calls
-- [ ] 5.2 "Connect Proof" screen (password-type field, cleared on submit, shows only `••••last4`)
-- [ ] 5.3 Interview screen: mic permission, status, live transcript
-- [ ] 5.4 Read-back panel: exact text, "this will be public on your Proof profile", Google-data disclosure, post result link
+- [x] 5.1 Vite + React + TS scaffold, LiveKit client, same-origin API calls
+- [x] 5.2 "Connect Proof" screen (password-type field, cleared on submit, shows only `••••last4`)
+- [x] 5.3 Interview screen: mic permission, status, live transcript
+- [x] 5.4 Read-back panel: exact text, "this will be public on your Proof profile", Google-data disclosure, post result link
 - [ ] 5.5 ⚑ CUT: `design:accessibility-review` + `design:ux-copy` pass (Tamil + English strings)
 
 ## Phase 6 — Deploy (≈1.5 h)
