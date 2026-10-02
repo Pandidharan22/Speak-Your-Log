@@ -39,7 +39,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 - [x] 3.1 Interview state machine (pure Python) + exhaustive unit tests — `c1bbe2f`
 - [x] 3.2 `POST /api/interviews`: create room, explicit agent dispatch, LiveKit token for the browser — `978ce68`
 - [x] 3.3 Hello-agent: joins room, Gemini Live (`gemini-3.1-flash-live-preview`), speaks Tamil/English locally — `e433a65`
-- [x] 3.4 Scripted questions Q1 → Q2 → Q3 + verbatim capture per turn
+- [x] 3.4 Scripted questions Q1 → Q2 → Q3 + verbatim capture per turn — `df71b4e`
 - [ ] 3.5 Follow-up: one question that quotes the student's own words (+ small eval set)
 - [ ] 3.6 Consent classifier: rules first, LLM fallback; Tamil/English/Tanglish eval set
 - [ ] 3.7 Read-back (spoken + on-screen data message) and `confirming` state
