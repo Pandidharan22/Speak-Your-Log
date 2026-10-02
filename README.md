@@ -61,9 +61,9 @@ cd apps/web && npm ci && npm run dev        # http://localhost:5173
 
 | Part | Command | What it covers |
 |---|---|---|
-| API | `cd apps/api && .venv/Scripts/python -m pytest` | config, sessions, vault crypto, Proof client, token endpoints, interview start, post gateway, internal endpoints. Integration tests use the real isolated schema in rolled-back transactions and skip when there is no `DATABASE_URL` |
-| Agent | `cd apps/agent && .venv/Scripts/python -m pytest` | interview state machine (every reachable state explored), consent classifier (135-case table), driver, API client |
-| Web | `cd apps/web && npm test` | API client, screens, accessibility roles, source-level security rules |
+| API (564) | `cd apps/api && .venv/Scripts/python -m pytest` | config, sessions, vault crypto, Proof client, token endpoints, interview start, post gateway, internal endpoints. Integration tests use the real isolated schema in rolled-back transactions and skip when there is no `DATABASE_URL` |
+| Agent (411) | `cd apps/agent && .venv/Scripts/python -m pytest` | interview state machine (every reachable state explored), consent classifier (135-case table), driver, read-back verification, lifecycle, API client |
+| Web (77) | `cd apps/web && npm test` | API client, screens, accessibility roles, source-level security rules |
 
 Beyond ordinary tests, every security-relevant module was **mutation-tested**: deliberate bugs (token logged, consent granted on silence, a double post, a wrong state transition…) are injected and the suite must catch each one. The journal records what survived and the test that was added in response.
 
@@ -82,6 +82,10 @@ Beyond ordinary tests, every security-relevant module was **mutation-tested**: d
 - `gemini-3.1-flash-live-preview` is a preview model; the model id is configuration, with `gemini-3.8-live` as the fallback.
 - Reply latency is about 2.3 s after the student stops speaking, mostly Gemini's end-of-turn silence wait.
 - Short answers are not re-prompted live (Gemini replies before the transcript is available); the read-back lets the student redo anything.
+- The read-back is **verified** against the model's own transcript before any "yes" can count; if the model fails to read the log, it is repeated once and then the session ends without posting (see the ADR-008 addendum for the live findings behind this).
+- The model's automatic reply and the system's explicit one can both announce the outcome, so the student may hear it twice. Cosmetic; the content is always accurate.
+- The preview Live model sometimes ends a session with a provider-side error; the app then stops without posting.
+- Tested so far with synthetic speech and a stand-in Proof endpoint; the first real-voice run and the first real post are described in [DEPLOY.md](DEPLOY.md) (the "real-voice test").
 
 ## Repository map
 
@@ -90,6 +94,6 @@ apps/api      FastAPI: identity, token vault, Proof client, interview start, pos
 apps/agent    LiveKit agent worker: interview flow, consent, Gemini Live wiring
 apps/web      React client
 db/           the isolated schema, rollback, and verification scripts
-docs/         PRD, SRS, Architecture, ADRs
+docs/         PRD, SRS, Architecture, ADRs, deploy checklist, Proof build-log draft
 spike/        the Phase 0 experiments (Tamil recognition, Live API latency) and RESULTS.md
 ```

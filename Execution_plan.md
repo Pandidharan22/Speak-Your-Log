@@ -6,7 +6,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 `[x]` done · `[ ]` to do · `[~]` in progress · **⚑ CUT** = first thing to drop if we run late.
 
-**Current step → 7.1 README final, 7.3 Proof build-log draft, Phase 8**
+**Current step → 7.3 owner posts the build log; Phase 8 scale docs**
 
 ---
 
@@ -69,7 +69,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 ## Phase 7 — Submission
 
-- [ ] 7.1 `README.md`: what it is, live link, how to run, architecture pointer, limits of the free tier
+- [x] 7.1 `README.md`: what it is, live link, how to run, architecture pointer, limits of the free tier
 - [x] 7.2 `engineering:code-review` + security review of the whole diff; fix findings — `cfb85e4`
 - [ ] 7.3 Post our own build log to Proof (what we tried / what broke / what we decided and why) — dogfooding, with the user's go-ahead
 - [ ] 7.4 Submit: hosted link + repo link
