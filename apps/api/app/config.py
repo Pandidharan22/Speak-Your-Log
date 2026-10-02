@@ -55,6 +55,8 @@ class Settings(BaseSettings):
 
     # Postgres: the limited `syl_app` role via the Supabase transaction pooler.
     database_url: SecretStr
+    # LiveKit's free plan allows 5 concurrent agent sessions; stay below it by default.
+    max_active_interviews: int = Field(default=4, ge=1, le=5)
     # Hard ceiling of 5: the project is shared with another live app and the role is limited to 10.
     db_pool_max_size: int = Field(default=3, ge=1, le=5)
 

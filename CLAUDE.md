@@ -85,7 +85,9 @@ _Last updated: 2026-10-01_
 
 **DEADLINE: 2026-10-02 23:59 (user's local time).** Real working budget is only ~10–12 hours (user also sleeps/works) and Claude usage limits apply → scope is the thinnest vertical slice that satisfies the brief; docs are lean; scale-out design is interview prep and comes after the deployed demo works. Deploy something working early; polish later.
 
-**Phase:** 0, 1, 2 complete (Phase-2 review deferred until after Phase 4 — one pass over the whole system). **Phase 3 in progress:** 3.1 done — `apps/api/app/states.py` (persisted states + the single transition table; only `confirming → posting`) and `apps/agent/interview/flow.py` (pure conversation machine: `Flow` takes events, returns `Action`s, can only *request* a post from CONFIRM after the read-back; 753 reachable states explored exhaustively). 303 API tests + 61 agent tests; 27 deliberate flow bugs all caught — see Execution_plan.md.
+**Phase:** 0, 1, 2 complete (Phase-2 review deferred until after Phase 4 — one pass over the whole system). **Phase 3 in progress:** 3.1 state machines done; 3.2 done — `POST /api/interviews` (room + explicit agent dispatch `syl-interviewer` + minimal browser token; job token signed with AGENT_JOB_SECRET travels only in server-side dispatch metadata). 365 API tests + 61 agent tests; all verified live against LiveKit/Supabase/Proof — see Execution_plan.md.
+
+**Autonomy mode (from 2026-10-02):** user is away; work proceeds through Execution_plan.md step by step with commit → journal commit → push after each step (standing permission). **Never without the user:** merge to `main`, deploy, post to Proof, touch their accounts/browser sessions, spend money. Helper: `finish_step.py` (scratchpad).
 
 **Done**
 - Bootstrap committed: `main` @ `c7d4622`; `develop` has the journal + setup commits. Work happens on `develop`.
@@ -108,7 +110,7 @@ _Last updated: 2026-10-01_
 
 **Committed so far:** Phase 0 (repo, env, DB, spike) — `8cfba87` on `develop`. Phase 1 docs committed (`Execution_plan.md`, `docs/PRD.md`, `docs/SRS.md`, `docs/Architecture.md`, `docs/adr/001–007`); commit hashes are recorded in `Execution_plan.md`.
 
-**Next step:** 3.2 `POST /api/interviews` (create room, explicit agent dispatch, browser LiveKit token). The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
+**Next step:** 3.3 hello-agent (LiveKit worker + Gemini Live, joins the dispatched room and speaks). The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
 
 **Open decisions:** none blocking.
 

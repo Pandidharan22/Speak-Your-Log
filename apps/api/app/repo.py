@@ -19,6 +19,15 @@ class User:
 
 
 @dataclass(frozen=True, slots=True)
+class Interview:
+    id: UUID
+    user_id: UUID
+    room_name: str
+    state: str
+    created_at: datetime
+
+
+@dataclass(frozen=True, slots=True)
 class ProofCredential:
     user_id: UUID
     ciphertext: bytes
@@ -142,4 +151,36 @@ def get_proof_credential(conn: psycopg.Connection, user_id: UUID) -> ProofCreden
 
 def delete_proof_credential(conn: psycopg.Connection, user_id: UUID) -> bool:
     cur = conn.execute("delete from speakyourlog.proof_credentials where user_id = %s", (user_id,))
+    return cur.rowcount == 1
+
+
+# ---- interviews ---------------------------------------------------------------------------------
+
+
+def create_interview(conn: psycopg.Connection, user_id: UUID, room_name: str) -> Interview:
+    row = conn.execute(
+        "insert into speakyourlog.interview_sessions (user_id, room_name) values (%s, %s)"
+        " returning id, user_id, room_name, state, created_at",
+        (user_id, room_name),
+    ).fetchone()
+    return Interview(**row)
+
+
+def count_recent_active_interviews(conn: psycopg.Connection, within_minutes: int) -> int:
+    """Interviews that may still hold a LiveKit agent session (not finished, recently started)."""
+    return conn.execute(
+        "select count(*) as n from speakyourlog.interview_sessions"
+        " where state in ('created', 'interviewing', 'confirming', 'posting')"
+        "   and created_at > now() - make_interval(mins => %s)",
+        (within_minutes,),
+    ).fetchone()["n"]
+
+
+def mark_interview_failed(conn: psycopg.Connection, interview_id: UUID) -> bool:
+    """created -> failed, atomically (only if it is still in `created`)."""
+    cur = conn.execute(
+        "update speakyourlog.interview_sessions set state = 'failed', updated_at = now()"
+        " where id = %s and state = 'created'",
+        (interview_id,),
+    )
     return cur.rowcount == 1

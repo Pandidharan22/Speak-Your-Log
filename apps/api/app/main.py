@@ -17,8 +17,10 @@ from app import __version__
 from app.config import Settings, get_settings
 from app.crypto import TokenVault
 from app.db import Database
+from app.livekit_service import LiveKitService
 from app.proof import ProofClient
 from app.ratelimit import RateLimiter
+from app.routers import interviews as interviews_router
 from app.routers import proof_token as proof_token_router
 from app.routers import session as session_router
 
@@ -57,6 +59,7 @@ def create_app(
     db: Database | None = None,
     proof: ProofClient | None = None,
     vault: TokenVault | None = None,
+    livekit: LiveKitService | None = None,
 ) -> FastAPI:
     configure_logging()
     settings = settings or get_settings()
@@ -66,6 +69,11 @@ def create_app(
     )
     proof = proof or ProofClient(settings.proof_mcp_url)
     vault = vault or TokenVault.from_settings(settings)
+    livekit = livekit or LiveKitService(
+        settings.livekit_url,
+        settings.livekit_api_key.get_secret_value(),
+        settings.livekit_api_secret.get_secret_value(),
+    )
 
     @asynccontextmanager
     async def lifespan(_: FastAPI) -> AsyncIterator[None]:
@@ -89,6 +97,9 @@ def create_app(
     app.state.db = db
     app.state.proof = proof
     app.state.vault = vault
+    app.state.livekit = livekit
+    # Starting an interview consumes LiveKit minutes: at most 5 per user per 10 minutes.
+    app.state.interview_limiter = RateLimiter(limit=5, window_seconds=600)
     # Each token attempt calls Proof, so it is limited per IP and per user (SRS NFR-2).
     app.state.token_limiter = RateLimiter(limit=10, window_seconds=60)
     # New anonymous users per client IP. (Behind Render, run uvicorn with --proxy-headers so
@@ -159,6 +170,7 @@ def create_app(
 
     app.include_router(session_router.router)
     app.include_router(proof_token_router.router)
+    app.include_router(interviews_router.router)
 
     @app.get("/readyz", include_in_schema=False)
     def readyz(response: Response) -> dict[str, str]:
