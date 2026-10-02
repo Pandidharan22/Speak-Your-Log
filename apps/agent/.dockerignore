@@ -1,0 +1,12 @@
+# Build context for `lk agent deploy` is apps/agent: ship only what the worker runs.
+.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+tests
+tools
+*.log
+*.out
+requirements-dev.txt
+.env
+.env.*

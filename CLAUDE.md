@@ -85,7 +85,11 @@ _Last updated: 2026-10-02_
 
 **DEADLINE: 2026-10-02 23:59 (user's local time).** Real working budget is only ~10–12 hours (user also sleeps/works) and Claude usage limits apply → scope is the thinnest vertical slice that satisfies the brief; docs are lean; scale-out design is interview prep and comes after the deployed demo works. Deploy something working early; polish later.
 
-**Phase:** 0, 1, 2 complete (Phase-2 review deferred until after Phase 4 — one pass over the whole system). **Phase 3 in progress:** 3.1–3.4 and 3.6 done (3.5 deferred). 3.6 = `apps/agent/interview/consent.py`: rule-based confirm/edit/cancel/unclear for English/Tamil/Tanglish, NO LLM (ADR-005 addendum); 135-case table + properties + 20 mutations. Live-agent facts: Gemini Live replies before the transcript arrives → model is pre-armed (ADR-008); no live short-answer re-prompt. **4.1/4.2 done:** `app/payload.py` (single place the post text is built), `app/gateway.py` (atomic `confirming→posting` claim, one Proof call, one final state per outcome; ambiguous → `post_unknown`, never retried), `app/routers/internal.py` (agent endpoints, job-token auth; agent can say only "confirmed"). 538 API + 381 agent tests. **Next:** 3.7/3.8 wire `agent.py` to the backend (driver + `ApiClient` already written and tested), then UI (written, uncommitted), deploy.
+**Phase:** 0–5 complete except 3.5 (follow-up eval set) and 5.5 (a11y/UX-copy pass), both cut. Phase 6 **prepared** (6.1 files written: root `Dockerfile`, `apps/agent/Dockerfile`, `render.yaml`, `DEPLOY.md`, `docs/Deploy_Checklist.md`; API serves the built UI with a strict CSP via `app/static.py`). 6.2/6.3 (Render, `lk agent create`) and 6.4 (real-voice test) need the owner. Counts: ~560 API, 406 agent, 77 web tests; every security-relevant module mutation-tested (see Dev_Journal).
+
+**Key live findings (Step 19 in the journal):** Gemini Live drops an explicit `generate_reply` made while it is producing its own filler reply, and LiveKit still reports the handle complete → `LiveKitVoice.speak` waits for idle, and the read-back is verified against the model's own transcript (`interview/verify.py`); an unheard read-back is repeated once, then the session ends without posting. **Not yet seen live:** the final "yes, post it" → post leg (Gemini returned `1011` errors during the last runs; unit-tested only). Success reply shape of Proof's `post_log` also unverified.
+
+**Local E2E harness (scratchpad, not in repo):** real API + DB with a FAKE Proof (`e2e_serve.py`), `apps/agent/tools/probe.py` plays synthetic speech (`wait_N` pseudo-arg pauses N s). Nothing was ever posted to the real Proof.
 
 **Autonomy mode (from 2026-10-02):** user is away; work proceeds through Execution_plan.md step by step with commit → journal commit → push after each step (standing permission). **Never without the user:** merge to `main`, deploy, post to Proof, touch their accounts/browser sessions, spend money. Helper: `finish_step.py` (scratchpad).
 
@@ -110,7 +114,7 @@ _Last updated: 2026-10-02_
 
 **Committed so far:** Phase 0 (repo, env, DB, spike) — `8cfba87` on `develop`. Phase 1 docs committed (`Execution_plan.md`, `docs/PRD.md`, `docs/SRS.md`, `docs/Architecture.md`, `docs/adr/001–007`); commit hashes are recorded in `Execution_plan.md`.
 
-**Next step:** 3.7/3.8 wire `agent.py` to `InterviewDriver` + `ApiClient` (5-min hard cap, 30 s silence timer, disconnect handling), then commit the web UI, deploy files and README. The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
+**Next step:** retry the live yes→post run with the fake Proof when Gemini is healthy; commit deploy files (this step); then 7.x: README finalise, code/security review pass, draft the Proof build log for the owner's approval (do NOT post), Phase 8 docs/scale. Owner actions are listed in DEPLOY.md.
 
 **Open decisions:** none blocking.
 

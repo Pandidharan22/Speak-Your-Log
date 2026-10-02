@@ -1,0 +1,36 @@
+# Render Blueprint: one free web service = the FastAPI API + the built web app (one origin).
+# Create it with: Render dashboard -> New -> Blueprint -> pick this repository (branch `main`).
+# Values marked `sync: false` are asked for in the dashboard and never stored in this file.
+services:
+  - type: web
+    name: speak-your-log
+    runtime: docker
+    plan: free
+    region: singapore # closest free region to students in India; change if you prefer
+    branch: main
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /healthz
+    autoDeployTrigger: commit
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: PROOF_MCP_URL
+        value: https://proof.zeromaintenanceengineer.in/api/mcp
+      # PUBLIC_BASE_URL is not needed: Render provides RENDER_EXTERNAL_URL and the API uses it.
+      # Set PUBLIC_BASE_URL only if you attach a custom domain.
+      - key: DATABASE_URL # the pooler string of the limited `syl_app` role
+        sync: false
+      - key: LIVEKIT_URL
+        sync: false
+      - key: LIVEKIT_API_KEY
+        sync: false
+      - key: LIVEKIT_API_SECRET
+        sync: false
+      - key: TOKEN_ENC_KEY_ID
+        value: v1
+      - key: TOKEN_ENC_KEY_V1 # production-only key: never reuse the local dev one
+        sync: false
+      - key: SESSION_HMAC_KEY # production-only key
+        sync: false
+      - key: AGENT_JOB_SECRET # production-only key
+        sync: false

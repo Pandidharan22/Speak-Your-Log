@@ -24,6 +24,7 @@ from app.routers import internal as internal_router
 from app.routers import interviews as interviews_router
 from app.routers import proof_token as proof_token_router
 from app.routers import session as session_router
+from app.static import mount_web_app
 
 # Microphone is required by the product; everything else is denied.
 _PERMISSIONS_POLICY = "microphone=(self), camera=(), geolocation=(), payment=()"
@@ -182,5 +183,8 @@ def create_app(
             return {"status": "ready"}
         response.status_code = 503
         return {"status": "unavailable"}
+
+    if settings.web_dist_dir is not None:
+        mount_web_app(app, settings.web_dist_dir, settings.livekit_url)  # last: API routes win
 
     return app

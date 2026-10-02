@@ -12,7 +12,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import Field, SecretStr, field_validator, model_validator
+from pydantic import AliasChoices, Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -74,7 +74,16 @@ class Settings(BaseSettings):
 
     # The one public origin the browser app is served from (scheme://host[:port], no path).
     # State-changing /api requests must carry exactly this Origin (CSRF defence in depth).
-    public_base_url: str = "http://localhost:8000"
+    # Render provides RENDER_EXTERNAL_URL itself, so a Blueprint deploy works with no extra setting;
+    # an explicit PUBLIC_BASE_URL (e.g. a custom domain) takes precedence.
+    public_base_url: str = Field(
+        default="http://localhost:8000",
+        validation_alias=AliasChoices("public_base_url", "render_external_url"),
+    )
+
+    # Directory holding the built web app (index.html + assets/). Set in the production image;
+    # unset in development, where the Vite dev server serves the UI.
+    web_dist_dir: Path | None = None
 
     @field_validator("database_url")
     @classmethod
@@ -117,6 +126,8 @@ class Settings(BaseSettings):
             raise ValueError("session_hmac_key, agent_job_secret and token_enc_key_v1 must differ")
         if self.token_enc_key_id not in self.token_enc_keys:
             raise ValueError(f"no encryption key configured for id {self.token_enc_key_id!r}")
+        if self.web_dist_dir is not None and not (self.web_dist_dir / "index.html").is_file():
+            raise ValueError("web_dist_dir must contain index.html")
         if self.app_env == "production":
             if not self.livekit_url.startswith("wss://"):
                 raise ValueError("livekit_url must be wss:// in production")

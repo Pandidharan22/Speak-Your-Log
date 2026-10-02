@@ -36,7 +36,12 @@ VALID = {
 # Production is stricter (https public URL, wss LiveKit); tests that need it spread this in.
 PROD = {"app_env": "production", "public_base_url": "https://app.example.com"}
 
-SETTING_ENV_VARS = [k.upper() for k in VALID] + ["PROOF_MCP_URL", "GEMINI_API_KEY"]
+SETTING_ENV_VARS = [k.upper() for k in VALID] + [
+    "PROOF_MCP_URL",
+    "GEMINI_API_KEY",
+    "RENDER_EXTERNAL_URL",
+    "WEB_DIST_DIR",
+]
 
 
 @pytest.fixture(autouse=True)
