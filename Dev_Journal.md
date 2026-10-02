@@ -288,3 +288,22 @@ One entry per committed step: what was done and why. Newest at the bottom. Entri
 **Honest limits:** the preview Live model returned `1011 Internal error` in several consecutive sessions (a bare session with the same audio and instructions worked, so it is provider-side and inside long sessions); the silence timer and shutdown turned each into a harmless "nothing was posted". The fallback model works but voiced its own reasoning aloud. Not yet seen: Proof's real success reply shape (needs the first real post). Details and the reasoning are in the ADR-008 addendum. 411 agent tests; the new code was mutation-tested (6 of 7 caught; the seventh was a wrong target string in my mutation file, and the behaviour it targets is asserted directly).
 
 **Housekeeping:** the live harness wrote throwaway rows to the real database again; I removed them (all `syl-e2e-*`, fake tokens) and the schema is empty. The harness lives outside the repository.
+
+---
+
+## Step 23 — Whole-system code and security review (step 7.2, `cfb85e4`, 2026-10-02)
+
+**Scope:** every security-relevant module, read again with fresh eyes now that the system works end to end: device sessions and cookies, rate limiting, the token router, interview start, the job token, the post gateway and internal endpoints, static serving and the CSP, the agent driver and consent path, and the web app's source-level rules. Lens: secrets handling, consent and post integrity, injection, rate limiting, error leakage, concurrency, free-tier abuse.
+
+**Findings and what I did:**
+
+| # | Severity | Finding | Action |
+|---|---|---|---|
+| 1 | Medium | Per-IP limit on creating anonymous users can be bypassed: `--forwarded-allow-ips='*'` makes uvicorn trust the *leftmost* `X-Forwarded-For` entry, which the client controls. A spoofing client could flood the shared database with users. | Added a **global** cap (60 new users a minute overall) that does not depend on the IP; documented that per-IP limits are a politeness measure, not a boundary (Dockerfile comment, Architecture §11). Tested with every request claiming a different IP. |
+| 2 | Low | The rate limiter's eviction only dropped *expired* keys, so a flood of distinct keys inside one window grew memory without bound. | Eviction now keeps the newest half when expiry frees nothing. Mutation testing showed my first test could not tell "keeps newest" from "keeps oldest" (it ended on the wrong insertion); the test now ends on an eviction boundary. |
+| 3 | Info | The job token passes through LiveKit's dispatch metadata. | Accepted and documented: it is scoped to one interview, expires in 20 minutes, and the gateway re-checks everything. |
+| 4 | Info | Interview start is gated by a token Proof itself accepts, which is a natural abuse limiter; the active-interview cap (4) protects the free LiveKit minutes. | No change. |
+
+**What looked right:** the token never appears in any response, log or storage; the post can only come from the gateway's atomic claim; the agent can say only "confirmed"; the verbatim rule has one code path; no database connection is held during any external call; error bodies never echo input; every `/api` write needs the exact Origin; the CSP allows exactly one remote host.
+
+**Verification:** 564 API tests pass; the two fixes were mutation-tested (5 mutations, all caught after the test fix above).

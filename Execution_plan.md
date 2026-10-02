@@ -70,7 +70,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 ## Phase 7 — Submission
 
 - [ ] 7.1 `README.md`: what it is, live link, how to run, architecture pointer, limits of the free tier
-- [x] 7.2 `engineering:code-review` + security review of the whole diff; fix findings
+- [x] 7.2 `engineering:code-review` + security review of the whole diff; fix findings — `cfb85e4`
 - [ ] 7.3 Post our own build log to Proof (what we tried / what broke / what we decided and why) — dogfooding, with the user's go-ahead
 - [ ] 7.4 Submit: hosted link + repo link
 
