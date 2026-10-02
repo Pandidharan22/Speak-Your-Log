@@ -307,3 +307,11 @@ One entry per committed step: what was done and why. Newest at the bottom. Entri
 **What looked right:** the token never appears in any response, log or storage; the post can only come from the gateway's atomic claim; the agent can say only "confirmed"; the verbatim rule has one code path; no database connection is held during any external call; error bodies never echo input; every `/api` write needs the exact Origin; the CSP allows exactly one remote host.
 
 **Verification:** 564 API tests pass; the two fixes were mutation-tested (5 mutations, all caught after the test fix above).
+
+---
+
+## Step 24 — README final and the Proof build-log draft (step 7.1; 7.3 drafted, `64fca46`, 2026-10-02)
+
+**What:** the README now reflects what was actually built and measured (test counts per part, the verified read-back, and the limitations the live runs revealed, including the cosmetic double announcement and the provider-side errors). `docs/Proof_Build_Log_Draft.md` holds nine ready-to-post entries (thinking, decided, mistake, stuck, built) written from this journal: the model choice with its measured numbers, why consent lives in code, the identity and database trade-offs, the two real mistakes (trusting "the speech finished", and my own marker making the model say something false), the provider problem, and an honest status line.
+
+**Not posted, on purpose:** posts on Proof are public and land on the owner's profile, so step 7.3 stays open until they approve and post (or edit and post) the entries themselves. The draft says so at the top.
