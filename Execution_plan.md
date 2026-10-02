@@ -76,9 +76,9 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 ## Phase 8 — Interview prep (parallel / after submission)
 
-- [x] 8.1 `docs/scale/System_Design_Millions.md` — SaaS design for millions of concurrent users
-- [x] 8.2 Capacity math + cost per minute + failure-mode drills
-- [x] 8.3 Tradeoff cheat-sheet (the ADRs, condensed)
+- [x] 8.1 `docs/scale/System_Design_Millions.md` — SaaS design for millions of concurrent users — `3fe9e49`
+- [x] 8.2 Capacity math + cost per minute + failure-mode drills — `3fe9e49`
+- [x] 8.3 Tradeoff cheat-sheet (the ADRs, condensed) — `3fe9e49`
 
 ---
 

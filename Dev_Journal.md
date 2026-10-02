@@ -315,3 +315,11 @@ One entry per committed step: what was done and why. Newest at the bottom. Entri
 **What:** the README now reflects what was actually built and measured (test counts per part, the verified read-back, and the limitations the live runs revealed, including the cosmetic double announcement and the provider-side errors). `docs/Proof_Build_Log_Draft.md` holds nine ready-to-post entries (thinking, decided, mistake, stuck, built) written from this journal: the model choice with its measured numbers, why consent lives in code, the identity and database trade-offs, the two real mistakes (trusting "the speech finished", and my own marker making the model say something false), the provider problem, and an honest status line.
 
 **Not posted, on purpose:** posts on Proof are public and land on the owner's profile, so step 7.3 stays open until they approve and post (or edit and post) the entries themselves. The draft says so at the top.
+
+---
+
+## Step 25 — The scale-out design, for interview prep (steps 8.1 to 8.3, `3fe9e49`, 2026-10-02)
+
+**What:** three documents in `docs/scale/`. *System_Design_Millions.md* takes the built free-tier slice and says what changes at millions of users, tier by tier (edge and API, identity, realtime voice, the post gateway as an outbox with a reconciliation job, data partitioning and residency, envelope encryption with KMS, observability) plus a failure-mode table. *Capacity_and_Cost.md* shows the method: load model, agent fleet sizing, a cost-per-minute formula with the dominant term named, database sizing, Proof as an external dependency, failure drills, and what to measure first. *Tradeoff_CheatSheet.md* condenses every decision into "what I chose / what it cost / when I would change it", with answers ready for the questions an interviewer is likely to ask.
+
+**Discipline:** every number that is not measured in this project is labelled an assumption; prices are deliberately left as placeholders with a formula rather than invented. I re-checked my own arithmetic after writing and fixed one error (peak request rate is about 400 rps, not 15: 12 requests per 120-second session is 0.1 rps per session, times 4,000 sessions). The first six failure drills in the capacity document already exist in this repository as automated tests or live runs, which is the strongest thing to be able to say about them.
