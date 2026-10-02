@@ -81,11 +81,11 @@ PRD → SRS → Architecture.md → ADRs (`docs/adr/`) → Scale-out design (int
 
 ## Current Status
 
-_Last updated: 2026-10-02_
+_Last updated: 2026-10-02 (end of autonomous run)_
 
 **DEADLINE: 2026-10-02 23:59 (user's local time).** Real working budget is only ~10–12 hours (user also sleeps/works) and Claude usage limits apply → scope is the thinnest vertical slice that satisfies the brief; docs are lean; scale-out design is interview prep and comes after the deployed demo works. Deploy something working early; polish later.
 
-**Phase:** 0–5 complete except 3.5 (follow-up eval set) and 5.5 (a11y/UX-copy pass), both cut. Phase 6 **prepared** (6.1 files written: root `Dockerfile`, `apps/agent/Dockerfile`, `render.yaml`, `DEPLOY.md`, `docs/Deploy_Checklist.md`; API serves the built UI with a strict CSP via `app/static.py`). 6.2/6.3 (Render, `lk agent create`) and 6.4 (real-voice test) need the owner. Counts: ~560 API, 406 agent, 77 web tests; every security-relevant module mutation-tested (see Dev_Journal).
+**Phase:** everything that does not need the owner is done and pushed to `develop` (CI green): Phases 0–5, deploy files (6.1), review (7.2), README (7.1), Proof build-log DRAFT (7.3, `docs/Proof_Build_Log_Draft.md`, not posted), scale docs (8.1–8.3). Cut: 3.5, 3.9, 5.5. **Owner actions (see DEPLOY.md):** merge PR develop→main, Render Blueprint (6.2), `lk agent create` (6.3), real-voice test with real Proof post (6.4), approve/post the build log (7.3), submit (7.4). Counts: 564 API, 411 agent, 77 web tests.
 
 **Key live findings (Step 19 and 22 in the journal, ADR-008 addendum):** the full interview → verified read-back → "yes, post it" → post (to a FAKE Proof) → spoken outcome chain has been run live on `gemini-3.1-flash-live-preview`. Rules learned: wait for the model to be idle before explicit speech; verify the read-back against the model's own transcript (`interview/verify.py`), repeat once then end without posting; send explicit requests as plain user-role messages recognised by exact text (`OwnRequests`), never as `instructions=` and never with a visible marker; the neutral auto-reply is a literal "Okay.". Known: the outcome may be announced twice (cosmetic); the preview model intermittently returns `1011` (sessions end harmlessly). Success reply shape of Proof's `post_log` is still unverified (first real post).
 
@@ -114,7 +114,7 @@ _Last updated: 2026-10-02_
 
 **Committed so far:** Phase 0 (repo, env, DB, spike) — `8cfba87` on `develop`. Phase 1 docs committed (`Execution_plan.md`, `docs/PRD.md`, `docs/SRS.md`, `docs/Architecture.md`, `docs/adr/001–007`); commit hashes are recorded in `Execution_plan.md`.
 
-**Next step:** 7.x: README finalise, code/security review pass, draft the Proof build log for the owner's approval (do NOT post), Phase 8 docs/scale. Owner actions are listed in DEPLOY.md.
+**Next step:** owner actions above. After the first real post: fix the `post_log` success-reply parser if needed, add the live link to README, record the real-voice results in the journal, tag v1.0.0.
 
 **Open decisions:** none blocking.
 
