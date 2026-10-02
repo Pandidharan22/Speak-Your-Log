@@ -42,8 +42,8 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 - [x] 3.4 Scripted questions Q1 → Q2 → Q3 + verbatim capture per turn — `df71b4e`
 - [ ] 3.5 Follow-up: one question that quotes the student's own words (+ small eval set)
 - [x] 3.6 Consent classifier: rules first, LLM fallback; Tamil/English/Tanglish eval set — `0916ae1`
-- [x] 3.7 Read-back (spoken + on-screen data message) and `confirming` state
-- [x] 3.8 Agent → API internal call with signed job token
+- [x] 3.7 Read-back (spoken + on-screen data message) and `confirming` state — `6ec5984`
+- [x] 3.8 Agent → API internal call with signed job token — `6ec5984`
 - [ ] 3.9 ⚑ CUT: per-utterance re-transcription with `gemini-3.5-transcribe` for higher fidelity
 
 ## Phase 4 — Post gateway (≈0.75 h)
