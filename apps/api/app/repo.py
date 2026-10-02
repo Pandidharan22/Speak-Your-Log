@@ -28,6 +28,17 @@ class Interview:
 
 
 @dataclass(frozen=True, slots=True)
+class InterviewRow:
+    id: UUID
+    user_id: UUID
+    state: str
+    draft: dict
+    proof_url: str | None
+    created_at: datetime
+    posted_at: datetime | None
+
+
+@dataclass(frozen=True, slots=True)
 class ProofCredential:
     user_id: UUID
     ciphertext: bytes
@@ -107,6 +118,8 @@ def purge_orphan_users(conn: psycopg.Connection) -> int:
 def purge_stale(conn: psycopg.Connection) -> None:
     purge_expired_sessions(conn)
     purge_orphan_users(conn)
+    resolve_stale_posting(conn)
+    purge_old_drafts(conn)
 
 
 # ---- Proof-token vault (ciphertext only; encryption happens in app/crypto, step 2.4) -------
@@ -184,3 +197,98 @@ def mark_interview_failed(conn: psycopg.Connection, interview_id: UUID) -> bool:
         (interview_id,),
     )
     return cur.rowcount == 1
+
+
+def get_interview(conn: psycopg.Connection, interview_id: UUID) -> InterviewRow | None:
+    row = conn.execute(
+        "select id, user_id, state, draft, proof_url, created_at, posted_at"
+        " from speakyourlog.interview_sessions where id = %s",
+        (interview_id,),
+    ).fetchone()
+    return InterviewRow(**row) if row else None
+
+
+def transition_interview(
+    conn: psycopg.Connection,
+    interview_id: UUID,
+    src: str,
+    dst: str,
+    *,
+    proof_url: str | None = None,
+) -> bool:
+    """Atomically move `src -> dst`. True only if THIS call made the move (0 rows otherwise):
+    the compare-and-set is what stops two requests from both winning (e.g. a double post)."""
+    from app.states import InterviewState, require_transition
+
+    require_transition(InterviewState(src), InterviewState(dst))  # illegal moves never reach SQL
+    cur = conn.execute(
+        "update speakyourlog.interview_sessions"
+        " set state = %s, updated_at = now(),"
+        "     proof_url = coalesce(%s, proof_url),"
+        "     posted_at = case when %s = 'posted' then now() else posted_at end"
+        " where id = %s and state = %s",
+        (dst, proof_url, dst, interview_id, src),
+    )
+    return cur.rowcount == 1
+
+
+def set_draft_answer(conn: psycopg.Connection, interview_id: UUID, key: str, text: str) -> bool:
+    """Store one verbatim answer (overwrites). Only while the interview is `interviewing`."""
+    cur = conn.execute(
+        "update speakyourlog.interview_sessions"
+        " set draft = jsonb_set(draft, '{answers}',"
+        "       coalesce(draft->'answers', '{}'::jsonb) || jsonb_build_object(%s::text, %s::text)),"
+        "     updated_at = now()"
+        " where id = %s and state = 'interviewing'",
+        (key, text, interview_id),
+    )
+    return cur.rowcount == 1
+
+
+def clear_draft(conn: psycopg.Connection, interview_id: UUID) -> bool:
+    cur = conn.execute(
+        "update speakyourlog.interview_sessions set draft = '{}'::jsonb, updated_at = now()"
+        " where id = %s and state = 'interviewing'",
+        (interview_id,),
+    )
+    return cur.rowcount == 1
+
+
+def save_confirmation(conn: psycopg.Connection, interview_id: UUID, text: str) -> None:
+    """The student's spoken reply that triggered the post: kept in the draft as the audit trail."""
+    conn.execute(
+        "update speakyourlog.interview_sessions"
+        " set draft = jsonb_set(draft, '{confirmation}', to_jsonb(%s::text), true)"
+        " where id = %s",
+        (text, interview_id),
+    )
+
+
+def count_posted_since(conn: psycopg.Connection, user_id: UUID, hours: int) -> int:
+    return conn.execute(
+        "select count(*) as n from speakyourlog.interview_sessions"
+        " where user_id = %s and state = 'posted'"
+        "   and posted_at > now() - make_interval(hours => %s)",
+        (user_id, hours),
+    ).fetchone()["n"]
+
+
+def resolve_stale_posting(conn: psycopg.Connection, older_than_seconds: int = 120) -> int:
+    """A post that has been `posting` for minutes lost its process (crash, redeploy) mid-call.
+    We cannot know whether Proof applied it, so it becomes `post_unknown`: never retried."""
+    return conn.execute(
+        "update speakyourlog.interview_sessions set state = 'post_unknown', updated_at = now()"
+        " where state = 'posting' and updated_at < now() - make_interval(secs => %s)",
+        (older_than_seconds,),
+    ).rowcount
+
+
+def purge_old_drafts(conn: psycopg.Connection, hours: int = 24) -> int:
+    """Text drafts do not outlive their session by more than a day (SRS NFR-3)."""
+    return conn.execute(
+        "update speakyourlog.interview_sessions set draft = '{}'::jsonb"
+        " where state in ('posted', 'post_unknown', 'failed', 'cancelled')"
+        "   and draft <> '{}'::jsonb"
+        "   and updated_at < now() - make_interval(hours => %s)",
+        (hours,),
+    ).rowcount

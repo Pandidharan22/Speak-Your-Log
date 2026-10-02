@@ -81,11 +81,11 @@ PRD → SRS → Architecture.md → ADRs (`docs/adr/`) → Scale-out design (int
 
 ## Current Status
 
-_Last updated: 2026-10-01_
+_Last updated: 2026-10-02_
 
 **DEADLINE: 2026-10-02 23:59 (user's local time).** Real working budget is only ~10–12 hours (user also sleeps/works) and Claude usage limits apply → scope is the thinnest vertical slice that satisfies the brief; docs are lean; scale-out design is interview prep and comes after the deployed demo works. Deploy something working early; polish later.
 
-**Phase:** 0, 1, 2 complete (Phase-2 review deferred until after Phase 4 — one pass over the whole system). **Phase 3 in progress:** 3.1–3.4 and 3.6 done (3.5 deferred). 3.6 = `apps/agent/interview/consent.py`: rule-based confirm/edit/cancel/unclear for English/Tamil/Tanglish, NO LLM (ADR-005 addendum); 135-case table + properties + 20 mutations. Live-agent facts: Gemini Live replies before the transcript arrives → model is pre-armed (ADR-008); no live short-answer re-prompt. 365 API + 297 agent tests. **Execution order changed** (see Execution_plan.md note): 4.1 gateway + internal endpoints → 3.7/3.8 agent read-back/confirm → 4.2 → UI.
+**Phase:** 0, 1, 2 complete (Phase-2 review deferred until after Phase 4 — one pass over the whole system). **Phase 3 in progress:** 3.1–3.4 and 3.6 done (3.5 deferred). 3.6 = `apps/agent/interview/consent.py`: rule-based confirm/edit/cancel/unclear for English/Tamil/Tanglish, NO LLM (ADR-005 addendum); 135-case table + properties + 20 mutations. Live-agent facts: Gemini Live replies before the transcript arrives → model is pre-armed (ADR-008); no live short-answer re-prompt. **4.1/4.2 done:** `app/payload.py` (single place the post text is built), `app/gateway.py` (atomic `confirming→posting` claim, one Proof call, one final state per outcome; ambiguous → `post_unknown`, never retried), `app/routers/internal.py` (agent endpoints, job-token auth; agent can say only "confirmed"). 538 API + 381 agent tests. **Next:** 3.7/3.8 wire `agent.py` to the backend (driver + `ApiClient` already written and tested), then UI (written, uncommitted), deploy.
 
 **Autonomy mode (from 2026-10-02):** user is away; work proceeds through Execution_plan.md step by step with commit → journal commit → push after each step (standing permission). **Never without the user:** merge to `main`, deploy, post to Proof, touch their accounts/browser sessions, spend money. Helper: `finish_step.py` (scratchpad).
 
@@ -110,7 +110,7 @@ _Last updated: 2026-10-01_
 
 **Committed so far:** Phase 0 (repo, env, DB, spike) — `8cfba87` on `develop`. Phase 1 docs committed (`Execution_plan.md`, `docs/PRD.md`, `docs/SRS.md`, `docs/Architecture.md`, `docs/adr/001–007`); commit hashes are recorded in `Execution_plan.md`.
 
-**Next step:** 4.1 post gateway: payload builder (FR-14), internal endpoints (state, answers, preview, post) with HMAC job token, atomic confirming→posting, daily guard. Then 3.7/3.8 agent integration. The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
+**Next step:** 3.7/3.8 wire `agent.py` to `InterviewDriver` + `ApiClient` (5-min hard cap, 30 s silence timer, disconnect handling), then commit the web UI, deploy files and README. The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
 
 **Open decisions:** none blocking.
 

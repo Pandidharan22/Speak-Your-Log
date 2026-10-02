@@ -19,6 +19,7 @@ from app.config import Settings
 from app.db import Database
 from app.jobtoken import sign_job_token
 from app.livekit_service import LiveKitUnavailable
+from app.payload import IncompleteDraft, build_payload
 
 log = logging.getLogger(__name__)
 router = APIRouter(prefix="/api")
@@ -83,3 +84,39 @@ def start_interview(
         livekit_url=settings.livekit_url,
         token=livekit.student_token(room_name, f"student-{secrets.token_hex(4)}"),
     )
+
+
+class PreviewOut(BaseModel):
+    content: str
+    why: str
+
+
+class InterviewStatus(BaseModel):
+    state: str
+    preview: PreviewOut | None  # the exact text that will be / was posted, once it is complete
+    proof_url: str | None
+
+
+_SHOW_PREVIEW = {"confirming", "posting", "posted", "post_unknown"}
+
+
+@router.get("/interviews/{interview_id}")
+def interview_status(
+    interview_id: UUID,
+    user: repo.User = Depends(current_user),  # noqa: B008
+    db: Database = Depends(get_db),  # noqa: B008
+) -> InterviewStatus:
+    """What the page needs while the interview runs: state, the read-back text, the result link.
+    Owner only; someone else's interview looks exactly like one that does not exist."""
+    with db.connection() as conn:
+        row = repo.get_interview(conn, interview_id)
+    if row is None or row.user_id != user.id:
+        raise HTTPException(status_code=404, detail="not_found")
+    preview = None
+    if row.state in _SHOW_PREVIEW:
+        try:
+            payload = build_payload(row.draft.get("answers", {}))
+            preview = PreviewOut(content=payload.content, why=payload.why)
+        except IncompleteDraft:
+            preview = None
+    return InterviewStatus(state=row.state, preview=preview, proof_url=row.proof_url)

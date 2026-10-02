@@ -20,13 +20,14 @@ from app.db import Database
 from app.livekit_service import LiveKitService
 from app.proof import ProofClient
 from app.ratelimit import RateLimiter
+from app.routers import internal as internal_router
 from app.routers import interviews as interviews_router
 from app.routers import proof_token as proof_token_router
 from app.routers import session as session_router
 
 # Microphone is required by the product; everything else is denied.
 _PERMISSIONS_POLICY = "microphone=(self), camera=(), geolocation=(), payment=()"
-_NO_STORE_PATHS = ("/api/", "/healthz", "/readyz")
+_NO_STORE_PATHS = ("/api/", "/internal/", "/healthz", "/readyz")
 _UNSAFE_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 _MAX_API_BODY_BYTES = 16_384  # the largest legitimate body is one token (~1 KB)
 
@@ -120,7 +121,7 @@ def create_app(
     ) -> Response:
         # Bounds memory on a small free instance. (Checks the declared length; the hosting proxy
         # is the backstop for chunked uploads that omit it.)
-        if request.url.path.startswith("/api/"):
+        if request.url.path.startswith(("/api/", "/internal/")):
             try:
                 declared = int(request.headers.get("content-length") or 0)
             except ValueError:
@@ -171,6 +172,7 @@ def create_app(
     app.include_router(session_router.router)
     app.include_router(proof_token_router.router)
     app.include_router(interviews_router.router)
+    app.include_router(internal_router.router)
 
     @app.get("/readyz", include_in_schema=False)
     def readyz(response: Response) -> dict[str, str]:

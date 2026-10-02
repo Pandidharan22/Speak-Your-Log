@@ -6,7 +6,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 `[x]` done · `[ ]` to do · `[~]` in progress · **⚑ CUT** = first thing to drop if we run late.
 
-**Current step → 4.1 — Post gateway + internal endpoints (then 3.7/3.8)**
+**Current step → 3.7/3.8 — wire the agent to the backend**
 
 ---
 
@@ -48,8 +48,8 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 ## Phase 4 — Post gateway (≈0.75 h)
 
-- [ ] 4.1 `confirming → posting` atomic transition, daily-limit guard, `post_log` call, store URL; lazy purge of drafts older than 24 h (SRS NFR-3)
-- [ ] 4.2 Failure-injection tests: Proof timeout → `post_unknown` (no blind retry), 401 → "reconnect token", 429 → friendly message, double-submit → one post
+- [x] 4.1 `confirming → posting` atomic transition, daily-limit guard, `post_log` call, store URL; lazy purge of drafts older than 24 h (SRS NFR-3)
+- [x] 4.2 Failure-injection tests: Proof timeout → `post_unknown` (no blind retry), 401 → "reconnect token", 429 → friendly message, double-submit → one post
 
 ## Phase 5 — Web UI (≈2 h)
 
