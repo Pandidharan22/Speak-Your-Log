@@ -11,3 +11,4 @@ Format: Context → Decision → Options → Trade-offs → Consequences → Act
 | [005](005-consent-and-post-gateway.md) | Deterministic consent gate; backend posts, agent only proposes | Accepted |
 | [006](006-hosting.md) | Render (API + UI) and LiveKit Cloud (agent), no card | Accepted |
 | [007](007-verbatim-record-policy.md) | What "in their own words" means in code | Accepted |
+| [008](008-gemini-live-turn-control.md) | Gemini Live turn control: pre-armed instructions, not in-the-moment steering | Accepted |

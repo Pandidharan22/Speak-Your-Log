@@ -19,7 +19,7 @@
 | FR-6 | The agent MUST greet and ask, in order: Q1 "What did you try today?", Q2 "What broke?", Q3 "Why did you choose that?", in the language the student uses (Tamil or English; mixed speech accepted). |
 | FR-7 | After Q3 the agent MUST ask exactly **one** follow-up that quotes a specific phrase from the student's answers. |
 | FR-8 | Every student answer MUST be stored as the transcribed text of what was said — no summarising, rewriting, translating, or grammar correction. Script choice for mixed speech is pinned by instruction (Tamil words in Tamil script, English words in Latin). |
-| FR-9 | If an answer is empty or < 3 words, the agent SHOULD ask once for more detail, then accept what is given. |
+| FR-9 | If an answer is empty or < 3 words, the agent SHOULD ask once for more detail, then accept what is given. **Not met in the live agent:** Gemini Live replies before the transcript is available, so this cannot be decided in time (ADR-008); the read-back (FR-12) and "start over" (FR-17) cover thin answers. The behaviour exists and is tested in `Flow` for transports that allow it. |
 | FR-10 | The session MUST end gracefully on student cancel, inactivity (30 s of silence after a prompt), or a hard cap of 5 minutes. |
 | FR-11 | The agent MUST NOT ask for or accept secrets (tokens, passwords) by voice. |
 

@@ -85,7 +85,7 @@ _Last updated: 2026-10-01_
 
 **DEADLINE: 2026-10-02 23:59 (user's local time).** Real working budget is only ~10–12 hours (user also sleeps/works) and Claude usage limits apply → scope is the thinnest vertical slice that satisfies the brief; docs are lean; scale-out design is interview prep and comes after the deployed demo works. Deploy something working early; polish later.
 
-**Phase:** 0, 1, 2 complete (Phase-2 review deferred until after Phase 4 — one pass over the whole system). **Phase 3 in progress:** 3.1 state machines, 3.2 `POST /api/interviews`, 3.3 hello-agent done. 3.3 = `apps/agent/agent.py` (LiveKit `AgentServer`, `agent_name="syl-interviewer"`, Gemini Live via `google.realtime.RealtimeModel`) + `interview/{prompts,settings,jobinfo}.py` + `tools/probe.py` (live student-simulator; run a worker with `python agent.py start`, then `python tools/probe.py [wav ...]`). Live-verified: greets + asks Q1, ~2.3 s reply latency, student speech transcribed incl. Tamil script. 365 API + 96 agent tests — see Execution_plan.md.
+**Phase:** 0, 1, 2 complete (Phase-2 review deferred until after Phase 4 — one pass over the whole system). **Phase 3 in progress:** 3.1–3.4 done. 3.4 = the scripted interview runs live: `interview/script.py` (pre-armed per-step instructions), `interview/driver.py` (re-arms the model after each answer, speaks explicitly only at branches; records answers verbatim via `Flow(min_words=0)`), `agent.py` wired to `conversation_item_added`. KEY FINDING (ADR-008): Gemini Live replies before the student's transcript arrives (reply audio +2.4 s, transcript +6.5 s after speech ends) so the model is *pre-armed*, never steered in the moment; live short-answer re-prompt dropped. Instructions are set at agent creation (an update right before the greeting loses it). 365 API + 124 agent tests.
 
 **Autonomy mode (from 2026-10-02):** user is away; work proceeds through Execution_plan.md step by step with commit → journal commit → push after each step (standing permission). **Never without the user:** merge to `main`, deploy, post to Proof, touch their accounts/browser sessions, spend money. Helper: `finish_step.py` (scratchpad).
 
@@ -110,7 +110,7 @@ _Last updated: 2026-10-01_
 
 **Committed so far:** Phase 0 (repo, env, DB, spike) — `8cfba87` on `develop`. Phase 1 docs committed (`Execution_plan.md`, `docs/PRD.md`, `docs/SRS.md`, `docs/Architecture.md`, `docs/adr/001–007`); commit hashes are recorded in `Execution_plan.md`.
 
-**Next step:** 3.4 drive the agent from `Flow` (scripted Q1→Q2→Q3, verbatim capture per turn); known gap: agent answered in English to Tamil speech → per-step instructions must enforce language matching. The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
+**Next step:** 3.5 follow-up quality eval set (quotes the student's own words; Tamil/English). Known: Q2 stays English for Tamil speakers. The vertical slice order is: backend core (identity, vault, Proof client) → voice agent → post gateway → UI → deploy → real-voice test → README/submit.
 
 **Open decisions:** none blocking.
 

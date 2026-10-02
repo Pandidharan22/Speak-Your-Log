@@ -105,7 +105,11 @@ def _noop(step: Step) -> Action:
 
 
 class Flow:
-    def __init__(self) -> None:
+    def __init__(self, min_words: int = MIN_WORDS) -> None:
+        # min_words=0 disables the short-answer re-prompt. The live agent uses 0: Gemini Live
+        # replies before the transcript is available, so a re-prompt cannot be decided in time
+        # (ADR-008). The behaviour stays here, tested, for transports that can support it.
+        self._min_words = min_words
         self.step = Step.GREETING
         self.outcome: Outcome | None = None
         self.followup_question: str | None = None
@@ -174,7 +178,7 @@ class Flow:
         self._parts.append(heard)
         self._silences = 0  # they are talking: the silence count starts again
         words = sum(len(part.split()) for part in self._parts)
-        if words < MIN_WORDS and not self._reprompted:
+        if words < self._min_words and not self._reprompted:
             self._reprompted = True
             return Action(Kind.REPROMPT, step)  # ask once for more; keep what they said
         self._answers[_ANSWER_KEY[step]] = " ".join(self._parts)

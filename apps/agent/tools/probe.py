@@ -153,6 +153,12 @@ async def main(wavs: list[Path], listen: float, meta: dict) -> int:
             results.append(
                 (wav.name, latency, None if reply is None else round(reply[1] - reply[0], 1))
             )
+            # Wall-clock stamps (seconds mod 1000) so these can be lined up with worker-side logs.
+            w0 = time.time() - (time.monotonic() - audio.t0)
+            reply_wall = (w0 + reply[0]) % 1000 if reply else float("nan")
+            print(
+                f"WALL speech_end={(w0 + t_end_rel) % 1000:.2f} reply_audio_start={reply_wall:.2f}"
+            )
             print(
                 f"student said {wav.name}: reply_latency={latency}s reply_length={results[-1][2]}s"
             )
