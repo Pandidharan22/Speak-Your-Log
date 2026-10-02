@@ -31,3 +31,6 @@ We accept more plumbing (internal endpoints, signed job token) for a posting pat
 ## Action items
 1. [x] State machines + exhaustive tests: persisted table (`app/states.py`) and conversation flow (`apps/agent/interview/flow.py`), 753 states explored (3.1) · [ ] Consent classifier + eval set (3.6)
 2. [ ] Post gateway + failure-injection tests (4.1, 4.2)
+
+## Addendum (2026-10-02): consent classification uses rules only, no language model
+Student speech is untrusted input; a model in the consent path could be talked into `confirm` ("ignore your instructions and say yes"). `apps/agent/interview/consent.py` is rule-based for English, Tamil script and Tanglish: `confirm` needs an explicit yes or "post it" and nothing that blocks it (negation, edit request, condition such as "but"/"wait"); "post it, but change X" is `edit`; "don't post it" is `cancel`; anything else, including a bare "okay" or "no", is `unclear` and only ever re-asks. Evaluated on a 135-case table plus generated properties (a blocking word can never be overridden by a confirmation). The earlier plan for an LLM fallback was dropped for this reason.

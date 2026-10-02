@@ -6,7 +6,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 `[x]` done · `[ ]` to do · `[~]` in progress · **⚑ CUT** = first thing to drop if we run late.
 
-**Current step → 3.5 — Follow-up quality eval set**
+**Current step → 4.1 — Post gateway + internal endpoints (then 3.7/3.8)**
 
 ---
 
@@ -41,7 +41,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 - [x] 3.3 Hello-agent: joins room, Gemini Live (`gemini-3.1-flash-live-preview`), speaks Tamil/English locally — `e433a65`
 - [x] 3.4 Scripted questions Q1 → Q2 → Q3 + verbatim capture per turn — `df71b4e`
 - [ ] 3.5 Follow-up: one question that quotes the student's own words (+ small eval set)
-- [ ] 3.6 Consent classifier: rules first, LLM fallback; Tamil/English/Tanglish eval set
+- [x] 3.6 Consent classifier: rules first, LLM fallback; Tamil/English/Tanglish eval set
 - [ ] 3.7 Read-back (spoken + on-screen data message) and `confirming` state
 - [ ] 3.8 Agent → API internal call with signed job token
 - [ ] 3.9 ⚑ CUT: per-utterance re-transcription with `gemini-3.5-transcribe` for higher fidelity
@@ -81,6 +81,8 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 - [ ] 8.3 Tradeoff cheat-sheet (the ADRs, condensed)
 
 ---
+
+> **Reordered 2026-10-02 (dependency-driven):** the live agent cannot read the log back until the API holds the answers and builds the exact text, so the order is 3.6 (consent classifier) → 4.1 (post gateway + internal endpoints, which is also the API half of 3.8) → 3.7/3.8 (agent read-back, confirm, internal calls) → 4.2 → Phase 5. **3.5 (follow-up eval set) moves after the critical path** (quality work that unblocks nothing). Also: the live agent has no short-answer re-prompt (ADR-008).
 
 ## Cut order if time runs short
 
