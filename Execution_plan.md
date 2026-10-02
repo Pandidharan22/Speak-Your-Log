@@ -6,7 +6,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 `[x]` done · `[ ]` to do · `[~]` in progress · **⚑ CUT** = first thing to drop if we run late.
 
-**Current step → 7.3 owner posts the build log; Phase 8 scale docs**
+**Current step → owner actions: Render, lk agent create, real-voice test, post build log, PR to main**
 
 ---
 
@@ -76,9 +76,9 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 ## Phase 8 — Interview prep (parallel / after submission)
 
-- [ ] 8.1 `docs/scale/System_Design_Millions.md` — SaaS design for millions of concurrent users
-- [ ] 8.2 Capacity math + cost per minute + failure-mode drills
-- [ ] 8.3 Tradeoff cheat-sheet (the ADRs, condensed)
+- [x] 8.1 `docs/scale/System_Design_Millions.md` — SaaS design for millions of concurrent users
+- [x] 8.2 Capacity math + cost per minute + failure-mode drills
+- [x] 8.3 Tradeoff cheat-sheet (the ADRs, condensed)
 
 ---
 
