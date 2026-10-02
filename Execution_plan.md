@@ -53,10 +53,10 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 ## Phase 5 — Web UI (≈2 h)
 
-- [x] 5.1 Vite + React + TS scaffold, LiveKit client, same-origin API calls
-- [x] 5.2 "Connect Proof" screen (password-type field, cleared on submit, shows only `••••last4`)
-- [x] 5.3 Interview screen: mic permission, status, live transcript
-- [x] 5.4 Read-back panel: exact text, "this will be public on your Proof profile", Google-data disclosure, post result link
+- [x] 5.1 Vite + React + TS scaffold, LiveKit client, same-origin API calls — `1418698`
+- [x] 5.2 "Connect Proof" screen (password-type field, cleared on submit, shows only `••••last4`) — `1418698`
+- [x] 5.3 Interview screen: mic permission, status, live transcript — `1418698`
+- [x] 5.4 Read-back panel: exact text, "this will be public on your Proof profile", Google-data disclosure, post result link — `1418698`
 - [ ] 5.5 ⚑ CUT: `design:accessibility-review` + `design:ux-copy` pass (Tamil + English strings)
 
 ## Phase 6 — Deploy (≈1.5 h)
