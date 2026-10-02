@@ -306,6 +306,15 @@ def test_timeouts_are_ignored_where_the_student_is_not_expected_to_speak(step):
     assert f.on_timeout().kind is Kind.NOOP
 
 
+def test_a_student_leaving_ends_the_session_without_posting_but_never_interrupts_a_post():
+    f = at_confirm()
+    assert f.on_student_left() == Action(Kind.END, Step.DONE, Outcome.CANCELLED)
+
+    posting = at_confirm()
+    posting.on_intent(Intent.CONFIRM)
+    assert posting.on_student_left().kind is Kind.NOOP and posting.step is Step.POSTING
+
+
 def test_nothing_does_anything_after_the_session_is_done():
     f = at_confirm()
     f.on_intent(Intent.CANCEL)
@@ -348,6 +357,7 @@ EVENTS = {
     "post_rejected": lambda f: f.on_post_result(PostResult.REJECTED),
     "timeout": lambda f: f.on_timeout(),
     "hard_cap": lambda f: f.on_hard_cap(),
+    "student_left": lambda f: f.on_student_left(),
 }
 
 # Every move between steps that is allowed to happen at all.

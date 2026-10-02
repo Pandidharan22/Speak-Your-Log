@@ -4,7 +4,8 @@ Needs real keys in the repo-root .env and a worker running (`python agent.py sta
 temporary room, dispatches the agent into it, joins as a "student", plays a pre-recorded WAV as the
 student's microphone, records the agent's audio + transcripts, then deletes the room.
 
-    python tools/probe.py [path/to/speech.wav ...] [--listen SECONDS] [--meta-file path.json]
+    python tools/probe.py [path/to/speech.wav | wait_SECONDS ...] [--listen SECONDS]
+                          [--meta-file path.json]
 
 Used as the end-to-end check for steps 3.3-3.8 (synthetic Tamil/English speech from the spike).
 """
@@ -138,6 +139,11 @@ async def main(wavs: list[Path], listen: float, meta: dict) -> int:
 
         results = []
         for wav in wavs:
+            if wav.name.startswith(
+                "wait_"
+            ):  # "wait_35": stay silent for 35 s (e.g. a long read-back)
+                await asyncio.sleep(float(wav.name.removeprefix("wait_")))
+                continue
             segs_before = len(audio.segments)
             ended = await play_wav(source, wav)
             t_end_rel = ended - audio.t0

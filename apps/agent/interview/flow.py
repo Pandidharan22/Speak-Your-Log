@@ -260,6 +260,12 @@ class Flow:
             return _noop(self.step)
         return self._end(Outcome.TIME_LIMIT)
 
+    def on_student_left(self) -> Action:
+        """The student disconnected. Ends the session, but never interrupts a post in flight."""
+        if self.step in (Step.POSTING, Step.DONE):
+            return _noop(self.step)
+        return self._end(Outcome.CANCELLED)
+
     # ---- internals -----------------------------------------------------------------------
 
     def _enter(self, step: Step) -> None:

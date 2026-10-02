@@ -18,8 +18,9 @@ class FakeVoice:
     async def set_instructions(self, text: str) -> None:
         self.calls.append(("set", text))
 
-    async def speak(self, instructions: str) -> None:
+    async def speak(self, instructions: str, expect: str | None = None) -> bool:
         self.calls.append(("speak", instructions))
+        return True
 
     def kinds(self) -> list[str]:
         return [k for k, _ in self.calls]
