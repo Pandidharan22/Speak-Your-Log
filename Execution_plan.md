@@ -37,7 +37,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 ## Phase 3 — Voice agent (≈3.5 h) — the core of the product
 
 - [x] 3.1 Interview state machine (pure Python) + exhaustive unit tests — `c1bbe2f`
-- [x] 3.2 `POST /api/interviews`: create room, explicit agent dispatch, LiveKit token for the browser
+- [x] 3.2 `POST /api/interviews`: create room, explicit agent dispatch, LiveKit token for the browser — `978ce68`
 - [ ] 3.3 Hello-agent: joins room, Gemini Live (`gemini-3.1-flash-live-preview`), speaks Tamil/English locally
 - [ ] 3.4 Scripted questions Q1 → Q2 → Q3 + verbatim capture per turn
 - [ ] 3.5 Follow-up: one question that quotes the student's own words (+ small eval set)
