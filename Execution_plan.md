@@ -61,7 +61,7 @@ Progress tracker. **Deadline: 2026-10-02 23:59.** Working budget ≈ 10–12 foc
 
 ## Phase 6 — Deploy (≈1.5 h)
 
-- [x] 6.1 Dockerfile (API + built UI) and agent Dockerfile
+- [x] 6.1 Dockerfile (API + built UI) and agent Dockerfile — `190909b`
 - [ ] 6.2 Render: API + static UI on one service; env vars set; keep-warm ping
 - [ ] 6.3 LiveKit Cloud: `lk agent deploy`; secrets via platform, not the repo
 - [ ] 6.4 **Real-voice end-to-end test on the hosted URL** (Tamil, Tanglish, English) — the validation the spike could not do
