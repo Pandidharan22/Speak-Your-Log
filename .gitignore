@@ -12,6 +12,7 @@ credentials*.json
 # --- Personal voice data & spike outputs (never commit) ---
 spike/audio/
 spike/out/
+apps/agent/*.out
 
 # --- Python ---
 __pycache__/
